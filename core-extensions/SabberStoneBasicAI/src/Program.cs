@@ -25,6 +25,7 @@ using SabberStoneBasicAI.Score;
 using SabberStoneBasicAI.AIAgents;
 using SabberStoneBasicAI.PartialObservation;
 using SabberStoneBasicAI.CompetitionEvaluation;
+using SabberStoneBasicAI.AIAgents.DecksDB;
 
 namespace SabberStoneBasicAI
 {
@@ -36,14 +37,14 @@ namespace SabberStoneBasicAI
 		{
 			Console.WriteLine("Starting test setup.");
 
-			// TEST BASIC AI
-
 			//OneTurn();
 			//FullGame();
 			//RandomGames();
 			//TestPOGame();
 			//TestFullGames();
-			TestTournament();
+			//TestTournament();
+
+			TestPOGameMyAgent(10);
 
 			Console.WriteLine("Test ended!");
 			Console.ReadLine();
@@ -62,7 +63,7 @@ namespace SabberStoneBasicAI
 			decks[1] = new CompetitionEvaluation.Deck(Decks.AggroPirateWarrior, CardClass.WARRIOR, "Warrior");
 			decks[2] = new CompetitionEvaluation.Deck(Decks.MidrangeJadeShaman, CardClass.SHAMAN, "Shaman");
 
-			RoundRobinCompetition competition = new RoundRobinCompetition(agents, decks, "results.txt");
+			RoundRobinCompetition competition = new RoundRobinCompetition(agents, decks, "");
 			competition.CreateTasks(100);
 			competition.startEvaluation(8);
 
@@ -73,7 +74,7 @@ namespace SabberStoneBasicAI
 		public static void TestPOGame()
 		{
 			Console.WriteLine("Setup gameConfig");
-			
+
 			var gameConfig = new GameConfig()
 			{
 				StartPlayer = 1,
@@ -215,8 +216,9 @@ namespace SabberStoneBasicAI
 					wins[1]++;
 				Console.WriteLine("game ended");
 				// Console.Write(game.PowerHistory.ToString());
-				using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"powerhistory.log")) {
-							file.WriteLine(game.PowerHistory.Print());
+				using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"powerhistory.log"))
+				{
+					file.WriteLine(game.PowerHistory.Print());
 				}
 				using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"logger.log"))
 				{
@@ -516,5 +518,103 @@ namespace SabberStoneBasicAI
 			Console.WriteLine($"Player2: {String.Join(",", player2Stats)}");
 		}
 
+		public static void TestPOGameMyAgent(int count)
+		{
+			Console.WriteLine("Setup gameConfig");
+			Random rnd = new Random();
+
+			var gameConfig = new GameConfig()
+			{
+				StartPlayer = rnd.Next(1, 2),
+				Player1HeroClass = CardClass.PRIEST,
+				Player2HeroClass = CardClass.PRIEST,
+				Player1Deck = Decks.RenoKazakusDragonPriest,
+				Player2Deck = Decks.RenoKazakusDragonPriest,
+				FillDecks = false,
+				Shuffle = true,
+				Logging = true
+			};
+
+			Console.WriteLine("Setup POGameHandler");
+			AbstractAgent player1 = new MyAgent();
+			AbstractAgent player2 = new DynamicLookaheadAgent();
+			var gameHandler = new POGameHandler(gameConfig, player1, player2, repeatDraws: false);
+
+			Console.WriteLine("Simulate Games");
+			gameHandler.PlayGames(nr_of_games: count, addResultToGameStats: true, debug: false);
+
+			GameStats gameStats = gameHandler.getGameStats();
+
+			gameStats.printResults();
+
+			Console.WriteLine("Test successful");
+			Console.ReadLine();
+		}
+
+		public static void TestRandomVsMy(int count)
+		{
+			Console.WriteLine("Setup gameConfig");
+			Random rnd = new Random();
+
+			var gameConfig = new GameConfig()
+			{
+				StartPlayer = rnd.Next(1, 2),
+				Player1HeroClass = CardClass.PRIEST,
+				Player2HeroClass = CardClass.PRIEST,
+				Player1Deck = Decks.RenoKazakusDragonPriest,
+				Player2Deck = Decks.RenoKazakusDragonPriest,
+				FillDecks = false,
+				Shuffle = true,
+				Logging = false
+			};
+
+			Console.WriteLine("Setup POGameHandler");
+			AbstractAgent player1 = new MyAgent();
+			AbstractAgent player2 = new RandomAgent();
+			var gameHandler = new POGameHandler(gameConfig, player1, player2, repeatDraws: false);
+
+			Console.WriteLine("Simulate Games");
+
+			gameHandler.PlayGames(nr_of_games: count, addResultToGameStats: true, debug: false);
+			GameStats gameStats = gameHandler.getGameStats();
+
+			gameStats.printResults();
+
+			Console.WriteLine("Test successful");
+			Console.ReadLine();
+		}
+
+		public static void TestGreedyVsMy(int count)
+		{
+			Console.WriteLine("Setup gameConfig");
+			Random rnd = new Random();
+
+			var gameConfig = new GameConfig()
+			{
+				StartPlayer = rnd.Next(1, 2),
+				Player1HeroClass = CardClass.PRIEST,
+				Player2HeroClass = CardClass.PRIEST,
+				Player1Deck = Decks.RenoKazakusDragonPriest,
+				Player2Deck = Decks.RenoKazakusDragonPriest,
+				FillDecks = false,
+				Shuffle = true,
+				Logging = false
+			};
+
+			Console.WriteLine("Setup POGameHandler");
+			AbstractAgent player1 = new MyAgent();
+			AbstractAgent player2 = new RandomAgent();
+			var gameHandler = new POGameHandler(gameConfig, player1, player2, repeatDraws: false);
+
+			Console.WriteLine("Simulate Games");
+
+			gameHandler.PlayGames(nr_of_games: count, addResultToGameStats: true, debug: false);
+			GameStats gameStats = gameHandler.getGameStats();
+
+			gameStats.printResults();
+
+			Console.WriteLine("Test successful");
+			Console.ReadLine();
+		}
 	}
 }
