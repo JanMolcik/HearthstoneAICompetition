@@ -25,7 +25,7 @@ using SabberStoneBasicAI.Score;
 using SabberStoneBasicAI.AIAgents;
 using SabberStoneBasicAI.PartialObservation;
 using SabberStoneBasicAI.CompetitionEvaluation;
-using SabberStoneBasicAI.AIAgents.DecksDB;
+using SabberStoneBasicAI.AIAgents.MyAgent;
 
 namespace SabberStoneBasicAI
 {
@@ -44,7 +44,7 @@ namespace SabberStoneBasicAI
 			//TestFullGames();
 			//TestTournament();
 
-			TestPOGameMyAgent(10);
+			TestPOGameMyAgent(1);
 
 			Console.WriteLine("Test ended!");
 			Console.ReadLine();
