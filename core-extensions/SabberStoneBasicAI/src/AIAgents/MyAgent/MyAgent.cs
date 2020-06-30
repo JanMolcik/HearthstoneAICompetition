@@ -88,9 +88,9 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 			/* ------------ Choosing best option ------------------- */
 
-			var returnValue = validOpts.Any() ?
+			/*var returnValue = validOpts.Any() ?
 				validOpts.Select(x => scoreAsync(x, player.PlayerId, (optsCount >= 5) ? ((optsCount >= 25) ? 1 : 2) : 3)).OrderBy(x => x.Result.Value).Last().Result.Key :
-				player.Options().First(x => x.PlayerTaskType == PlayerTaskType.END_TURN);
+				player.Options().First(x => x.PlayerTaskType == PlayerTaskType.END_TURN);*/
 
 			MCTS mcts = new MCTS(game);
 			PlayerTask result = mcts.UCTSearch();

@@ -537,7 +537,7 @@ namespace SabberStoneBasicAI
 
 			Console.WriteLine("Setup POGameHandler");
 			AbstractAgent player1 = new MyAgent();
-			AbstractAgent player2 = new DynamicLookaheadAgent();
+			AbstractAgent player2 = new GreedyAgent();
 			var gameHandler = new POGameHandler(gameConfig, player1, player2, repeatDraws: false);
 
 			Console.WriteLine("Simulate Games");

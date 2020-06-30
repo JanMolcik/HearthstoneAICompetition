@@ -12,7 +12,7 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 	class MCTS
 	{
 		private readonly double EXP_CONSTANT = 1 / Math.Sqrt(2); // magic constant for BestChild function
-		private readonly int COMPUTATIONAL_BUDGET = 10000; // in ms
+		private readonly int COMPUTATIONAL_BUDGET = 20000; // in ms
 		private readonly CustomStopwatch StopWatch = new CustomStopwatch();
 		private readonly Random Rand = new Random();
 		private readonly POGame InitialState;
@@ -34,11 +34,14 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 				POGame state = InitialState.getCopy();
 				Node lastNode = TreePolicy(Root, ref state);
 				double delta = DefaultPolicy(state, lastNode);
-				Console.WriteLine("Delta: " + delta);
+				Backup(lastNode, delta);
+				//if (delta > 0.5) Console.WriteLine("Delta: " + delta);
 			}
 			StopWatch.Stop();
+			PlayerTask best = BestChild(Root, EXP_CONSTANT).Action;
+			Console.WriteLine("Final task: " + best);
 
-			return BestChild(Root, EXP_CONSTANT).Action;
+			return best;
 		}
 
 		private Node TreePolicy(Node node, ref POGame state)
@@ -46,12 +49,12 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 			// needs testing
 			while (state.State != State.COMPLETE)
 			{
-				if (state.CurrentPlayer.Options().Count == node.Children.Count() && node.Action != null)
+				if (FullyExpanded(node))
 				{
+					node = BestChild(node, EXP_CONSTANT);
 					List<PlayerTask> action = new List<PlayerTask> { node.Action };
 					state = state.Simulate(new List<PlayerTask> { node.Action })[node.Action];
-					node = BestChild(node, EXP_CONSTANT);
-					Console.WriteLine("Choosing Best Child..");
+					//Console.WriteLine("Choosing Best Child..");
 				}
 				else
 				{
@@ -69,7 +72,7 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 			do
 			{
 				child = node.Children[Rand.Next(node.Children.Count)];
-				Console.WriteLine("Expanding..");
+				//Console.WriteLine("Expanding..");
 			}
 			while (child.Children.Count > 0); // unvisited child
 
@@ -112,7 +115,7 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 				PlayerTask randomAction = state.CurrentPlayer.Options()[Rand.Next(state.CurrentPlayer.Options().Count)];
 				state = state.Simulate(new List<PlayerTask> { randomAction })[randomAction];
 
-				Console.WriteLine("Default Policy Simulating..");
+				//Console.WriteLine("Default Policy Simulating..");
 				if (state == null)
 				{
 					return 0.5;
@@ -139,16 +142,28 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 				node.VisitedCount++;
 				node.Reward += delta;
 				node = node.Parent;
-				Console.WriteLine("Backing Up..");
+				//Console.WriteLine("Backing Up..");
 			}
 		}
 
 		private void InitializeNode(Node node, ref POGame state)
 		{
-			state.CurrentPlayer.Options().ForEach(option =>
+			if (state != null)
 			{
-				node.AddChild(new Node(option, node));
-			});
+				state.CurrentPlayer.Options().ForEach(option =>
+				{
+					node.AddChild(new Node(option, node));
+				});
+			}
+		}
+
+		private bool FullyExpanded(Node node)
+		{
+			foreach(Node child in node.Children)
+			{
+				if (child.Children.Count == 0) return false;
+			}
+			return true;
 		}
 	}
 }
