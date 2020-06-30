@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SabberStoneBasicAI.Meta;
 using SabberStoneCore.Model;
+using SabberStoneAICompetition.src.AIAgents.MyAgent;
 
 
 // TODO choose your own namespace by setting up <submission_tag>
@@ -91,14 +92,11 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 				validOpts.Select(x => scoreAsync(x, player.PlayerId, (optsCount >= 5) ? ((optsCount >= 25) ? 1 : 2) : 3)).OrderBy(x => x.Result.Value).Last().Result.Key :
 				player.Options().First(x => x.PlayerTaskType == PlayerTaskType.END_TURN);
 
-			//var opponentCopy = new Controller(gameCopy.getGame(), "Hypothetic", opponent.PlayerId, opponent.Id, opponent.NativeTags);
-			//opponentCopy.HandZone.Add(Entity.FromCard(in opponent, Cards.FromName("Blizzard")));
-			//var opponentOptions = game.Simulate(opponentCopy.Options()).Where(x => x.Value != null);
-			//opponentOptions.ToList().ForEach(option => Console.WriteLine(option.Value));
-
+			MCTS mcts = new MCTS(game);
+			PlayerTask result = mcts.UCTSearch();
 			//StopWatch.StopWithMessage(String.Format("Compute {0} options in {1} ms", optcount, StopWatch.ElapsedMilliseconds));
 
-			return returnValue;
+			return result;
 
 			void countProbabilities()
 			{

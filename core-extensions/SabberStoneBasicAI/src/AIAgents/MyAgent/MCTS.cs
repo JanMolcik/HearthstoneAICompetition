@@ -12,7 +12,7 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 	class MCTS
 	{
 		private readonly double EXP_CONSTANT = 1 / Math.Sqrt(2); // magic constant for BestChild function
-		private readonly int COMPUTATIONAL_BUDGET = 500; // in ms
+		private readonly int COMPUTATIONAL_BUDGET = 10000; // in ms
 		private readonly CustomStopwatch StopWatch = new CustomStopwatch();
 		private readonly Random Rand = new Random();
 		private readonly POGame InitialState;
@@ -22,8 +22,7 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 		{
 			Root = new Node();
 			InitialState = poGame;
-			InitializeRoot();
-
+			InitializeNode(Root, ref InitialState);
 		}
 
 		public PlayerTask UCTSearch()
@@ -33,25 +32,53 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 			while (StopWatch.ElapsedMilliseconds < COMPUTATIONAL_BUDGET)
 			{
 				POGame state = InitialState.getCopy();
-				Node lastNode = TreePolicy(Root);
+				Node lastNode = TreePolicy(Root, ref state);
 				double delta = DefaultPolicy(state, lastNode);
-
+				Console.WriteLine("Delta: " + delta);
 			}
 			StopWatch.Stop();
 
 			return BestChild(Root, EXP_CONSTANT).Action;
 		}
 
-		private Node TreePolicy(Node node)
+		private Node TreePolicy(Node node, ref POGame state)
 		{
-			// work in progress
-			return new Node();
+			// needs testing
+			while (state.State != State.COMPLETE)
+			{
+				if (state.CurrentPlayer.Options().Count == node.Children.Count() && node.Action != null)
+				{
+					List<PlayerTask> action = new List<PlayerTask> { node.Action };
+					state = state.Simulate(new List<PlayerTask> { node.Action })[node.Action];
+					node = BestChild(node, EXP_CONSTANT);
+					Console.WriteLine("Choosing Best Child..");
+				}
+				else
+				{
+					return Expand(node, ref state);
+				}
+			}
+
+			return node;
 		}
 
-		private Node Expand(Node node)
+		private Node Expand(Node node, ref POGame state)
 		{
-			// work in progress
-			return new Node();
+			// needs testing
+			Node child;
+			do
+			{
+				child = node.Children[Rand.Next(node.Children.Count)];
+				Console.WriteLine("Expanding..");
+			}
+			while (child.Children.Count > 0); // unvisited child
+
+			POGame childState = state.getCopy();
+			childState = childState.Simulate(new List<PlayerTask> { child.Action })[child.Action];
+
+			InitializeNode(child, ref childState);
+
+			return child;
 		}
 
 		private Node BestChild(Node node, double c)
@@ -82,8 +109,15 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 			double result = -1;
 			while (state.State != State.COMPLETE)
 			{
-				PlayerTask randomAction = state.CurrentPlayer.Options()[Rand.Next(state.CurrentPlayer.Options().Count())];
+				PlayerTask randomAction = state.CurrentPlayer.Options()[Rand.Next(state.CurrentPlayer.Options().Count)];
 				state = state.Simulate(new List<PlayerTask> { randomAction })[randomAction];
+
+				Console.WriteLine("Default Policy Simulating..");
+				if (state == null)
+				{
+					return 0.5;
+				}
+
 			}
 
 			if (state.CurrentPlayer.PlayState == PlayState.CONCEDED || state.CurrentPlayer.PlayState == PlayState.LOST)
@@ -105,14 +139,15 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 				node.VisitedCount++;
 				node.Reward += delta;
 				node = node.Parent;
+				Console.WriteLine("Backing Up..");
 			}
 		}
 
-		private void InitializeRoot()
+		private void InitializeNode(Node node, ref POGame state)
 		{
-			InitialState.CurrentPlayer.Options().ForEach(option =>
+			state.CurrentPlayer.Options().ForEach(option =>
 			{
-				Root.Children.Add(new Node(option, Root));
+				node.AddChild(new Node(option, node));
 			});
 		}
 	}
