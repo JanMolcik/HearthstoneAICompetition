@@ -1,13 +1,11 @@
 ﻿using SabberStoneBasicAI.AIAgents;
 using SabberStoneBasicAI.PartialObservation;
 using SabberStoneCore.Enums;
-using SabberStoneCore.Model;
 using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Tasks.PlayerTasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace SabberStoneBasicAI.AIAgents.MyAgent
 {
