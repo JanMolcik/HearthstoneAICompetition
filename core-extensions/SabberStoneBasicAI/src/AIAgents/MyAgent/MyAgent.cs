@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using SabberStoneBasicAI.Meta;
 using SabberStoneCore.Model;
-using SabberStoneAICompetition.src.AIAgents.MyAgent;
 
 
 // TODO choose your own namespace by setting up <submission_tag>
@@ -91,7 +90,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			/*var returnValue = validOpts.Any() ?
 				validOpts.Select(x => scoreAsync(x, player.PlayerId, (optsCount >= 5) ? ((optsCount >= 25) ? 1 : 2) : 3)).OrderBy(x => x.Result.Value).Last().Result.Key :
 				player.Options().First(x => x.PlayerTaskType == PlayerTaskType.END_TURN);*/
-
+			
 			MCTS mcts = new MCTS(game);
 			PlayerTask result = mcts.UCTSearch();
 			//StopWatch.StopWithMessage(String.Format("Compute {0} options in {1} ms", optcount, StopWatch.ElapsedMilliseconds));
@@ -124,7 +123,6 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 					ProbabilitiesDict[deck.Key] = probability;
 					//if (probability > 0) Console.WriteLine(deck.Key + " has probability of " + ProbabilitiesDict[deck.Key] * 100 + "%");
 				}
-
 			}
 
 			void predictOpponentTask()
@@ -235,7 +233,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 		}
 
 
-		private static int Score(POGame state, int playerId)
+		public static int Score(POGame state, int playerId)
 		{
 			var p = state.CurrentPlayer.PlayerId == playerId ? state.CurrentPlayer : state.CurrentOpponent;
 

@@ -4,6 +4,7 @@ using SabberStoneBasicAI.Score;
 using SabberStoneCore.Tasks.PlayerTasks;
 using SabberStoneBasicAI.PartialObservation;
 using System.Collections.Generic;
+using System;
 
 //Developed by Oskar Kirmis and Florian Koch and submitted to the 2018 Hearthstone AI Competition's Premade Deck Playing Track
 namespace SabberStoneBasicAI.AIAgents
@@ -31,14 +32,16 @@ namespace SabberStoneBasicAI.AIAgents
 			// Get all simulation results for simulations that didn't fail
 			var validOpts = game.Simulate(player.Options()).Where(x => x.Value != null);
 
-			// If all simulations failed, play end turn option (always exists), else best according to score function
-			return validOpts.Any() ?
+			var result = validOpts.Any() ?
 				validOpts.OrderBy(x => Score(x.Value, player.PlayerId)).Last().Key :
 				player.Options().First(x => x.PlayerTaskType == PlayerTaskType.END_TURN);
+			// If all simulations failed, play end turn option (always exists), else best according to score function
+			Console.WriteLine("GreedyAgent Task: " + result);
+			return result;
 		}
 
 		// Calculate different scores based on our hero's class
-		private static int Score(POGame state, int playerId)
+		public static int Score(POGame state, int playerId)
 		{
 			var p = state.CurrentPlayer.PlayerId == playerId ? state.CurrentPlayer : state.CurrentOpponent;
 			switch (state.CurrentPlayer.HeroClass)

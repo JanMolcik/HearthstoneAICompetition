@@ -1,21 +1,24 @@
-﻿using SabberStoneBasicAI.AIAgents.MyAgent;
+﻿using SabberStoneBasicAI.AIAgents;
 using SabberStoneBasicAI.PartialObservation;
 using SabberStoneCore.Enums;
+using SabberStoneCore.Model;
+using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Tasks.PlayerTasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SabberStoneAICompetition.src.AIAgents.MyAgent
+namespace SabberStoneBasicAI.AIAgents.MyAgent
 {
 	class MCTS
 	{
 		private readonly double EXP_CONSTANT = 1 / Math.Sqrt(2); // magic constant for BestChild function
-		private readonly int COMPUTATIONAL_BUDGET = 20000; // in ms
+		private readonly int COMPUTATIONAL_BUDGET = 10000; // in ms
 		private readonly CustomStopwatch StopWatch = new CustomStopwatch();
 		private readonly Random Rand = new Random();
-		private readonly POGame InitialState;
+		private POGame InitialState;
+		private readonly Controller player;
 		Node Root { get; set; }
 
 		public MCTS(POGame poGame)
@@ -23,11 +26,14 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 			Root = new Node();
 			InitialState = poGame;
 			InitializeNode(Root, ref InitialState);
+			player = poGame.CurrentPlayer;
+
+			//poGame.CurrentPlayer.Options().ForEach(task => Console.Write(task + " "));
+			Console.WriteLine();
 		}
 
 		public PlayerTask UCTSearch()
 		{
-			// needs testing
 			StopWatch.Start();
 			while (StopWatch.ElapsedMilliseconds < COMPUTATIONAL_BUDGET)
 			{
@@ -35,10 +41,9 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 				Node lastNode = TreePolicy(Root, ref state);
 				double delta = DefaultPolicy(state, lastNode);
 				Backup(lastNode, delta);
-				//if (delta > 0.5) Console.WriteLine("Delta: " + delta);
 			}
 			StopWatch.Stop();
-			PlayerTask best = BestChild(Root, EXP_CONSTANT).Action;
+			PlayerTask best = FinalBestChild(ref InitialState, Root).Action;
 			Console.WriteLine("Final task: " + best);
 
 			return best;
@@ -46,15 +51,12 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 
 		private Node TreePolicy(Node node, ref POGame state)
 		{
-			// needs testing
 			while (state.State != State.COMPLETE)
 			{
 				if (FullyExpanded(node))
 				{
-					node = BestChild(node, EXP_CONSTANT);
-					List<PlayerTask> action = new List<PlayerTask> { node.Action };
+					node = BestChild(ref state, node, EXP_CONSTANT);
 					state = state.Simulate(new List<PlayerTask> { node.Action })[node.Action];
-					//Console.WriteLine("Choosing Best Child..");
 				}
 				else
 				{
@@ -67,12 +69,11 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 
 		private Node Expand(Node node, ref POGame state)
 		{
-			// needs testing
 			Node child;
+
 			do
 			{
 				child = node.Children[Rand.Next(node.Children.Count)];
-				//Console.WriteLine("Expanding..");
 			}
 			while (child.Children.Count > 0); // unvisited child
 
@@ -84,43 +85,65 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 			return child;
 		}
 
-		private Node BestChild(Node node, double c)
+		private Node BestChild(ref POGame state, Node node, double c, bool print = false)
 		{
-			// needs testing
-			double maxUCT = 0;
-			int maxIndex = 0;
+			// refactor to generic function with different evaluation methods (UCB1, UCT, ...)
+			List<double> maxUCT = new List<double>();
+			List<int> maxIndex = new List<int>();
+			maxUCT.Add(0);
+			maxIndex.Add(0);
 
 			for (int i = 0; i < node.Children.Count(); i++)
 			{
 				Node child = node.Children[i];
-				double UCT = (child.Reward / child.VisitedCount) + (c * Math.Sqrt(2 * Math.Log(node.VisitedCount) / child.VisitedCount));
+				double UCT = (child.Reward / child.VisitedCount) +
+					(c * Math.Sqrt(2 * Math.Log(node.VisitedCount) / child.VisitedCount));
 
-				if (UCT > maxUCT)
+				if (print) Console.WriteLine(
+					String.Format("Child: {0}, visited: {1}, reward: {2}, UCT value: {3}",
+					child.Action, child.VisitedCount, child.Reward, UCT));
+
+				if (UCT > maxUCT[0])
 				{
-					maxUCT = UCT;
-					maxIndex = i;
+					maxUCT.Clear();
+					maxIndex.Clear();
+					maxUCT.Add(UCT);
+					maxIndex.Add(i);
+				}
+				else if (UCT == maxUCT[0])
+				{
+					maxUCT.Add(UCT);
+					maxIndex.Add(i);
 				}
 			}
-
-			return node.Children[maxIndex];
+			
+			if (maxUCT.Count > 1)
+			{
+				return BestChildTieBreaker(ref state, node, maxUCT, maxIndex);
+			}
+			return node.Children[maxIndex[0]];
 
 		}
 
 		private double DefaultPolicy(POGame state, Node node)
 		{
-			// needs testing
 			double result = -1;
 			while (state.State != State.COMPLETE)
 			{
-				PlayerTask randomAction = state.CurrentPlayer.Options()[Rand.Next(state.CurrentPlayer.Options().Count)];
-				state = state.Simulate(new List<PlayerTask> { randomAction })[randomAction];
+				// instead of removing unknown cards I should rather try guess what is
+				// in opponent's hand and simulate most probable and best actions
+				List<PlayerTask> actions = FilterFalsyCards(state.CurrentPlayer.Options());
 
-				//Console.WriteLine("Default Policy Simulating..");
+				// instead of random action I could be looking for best actions but..
+
+				PlayerTask randomAction = actions[Rand.Next(actions.Count())];
+				PlayerTask bestAction = BestAction(state, actions);
+				state = state.Simulate(new List<PlayerTask> { randomAction })[randomAction];
+				
 				if (state == null)
 				{
 					return 0.5;
 				}
-
 			}
 
 			if (state.CurrentPlayer.PlayState == PlayState.CONCEDED || state.CurrentPlayer.PlayState == PlayState.LOST)
@@ -136,13 +159,11 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 
 		private void Backup(Node node, double delta)
 		{
-			// needs testing
 			while (node != null)
 			{
 				node.VisitedCount++;
 				node.Reward += delta;
 				node = node.Parent;
-				//Console.WriteLine("Backing Up..");
 			}
 		}
 
@@ -152,18 +173,87 @@ namespace SabberStoneAICompetition.src.AIAgents.MyAgent
 			{
 				state.CurrentPlayer.Options().ForEach(option =>
 				{
-					node.AddChild(new Node(option, node));
+					node.Children.Add(new Node(option, node));
 				});
 			}
 		}
 
 		private bool FullyExpanded(Node node)
 		{
-			foreach(Node child in node.Children)
+			foreach (Node child in node.Children)
 			{
 				if (child.Children.Count == 0) return false;
 			}
 			return true;
+		}
+
+		private List<PlayerTask> FilterFalsyCards(List<PlayerTask> actions)
+		{
+			actions.RemoveAll(action => action.PlayerTaskType == PlayerTaskType.PLAY_CARD && action.Source.Card.Name == "No Way!");
+			return actions;
+		}
+
+		private PlayerTask BestAction(POGame state, List<PlayerTask> actions)
+		{
+			var validOpts = state.Simulate(actions).Where(x => x.Value != null);
+
+			PlayerTask bestAction = validOpts.Any() ?
+				validOpts.OrderBy(x => MyAgent.Score(x.Value, player.PlayerId)).Last().Key :
+				actions.First(x => x.PlayerTaskType == PlayerTaskType.END_TURN);
+
+			return bestAction;
+		}
+
+		private Node FinalBestChild(ref POGame state, Node node)
+		{
+			// needs testing
+			List<double> maxValue = new List<double>();
+			List<int> maxIndex = new List<int>();
+			maxValue.Add(0);
+			maxIndex.Add(0);
+
+			for (int i = 0; i < node.Children.Count(); i++)
+			{
+				Node child = node.Children[i];
+				double value = child.Reward / child.VisitedCount;
+
+				Console.WriteLine(
+					String.Format("Child: {0}, visited: {1}, reward: {2}, value: {3}",
+					child.Action, child.VisitedCount, child.Reward, value));
+
+				if (value > maxValue[0])
+				{
+					maxValue.Clear();
+					maxIndex.Clear();
+					maxValue.Add(value);
+					maxIndex.Add(i);
+				}
+				else if (value == maxValue[0])
+				{
+					maxValue.Add(value);
+					maxIndex.Add(i);
+				}
+			}
+
+			//if (print) Console.WriteLine("BestChild UCT value: " + maxUCT);
+			if (maxValue.Count > 1)
+			{
+				return BestChildTieBreaker(ref state, node, maxValue, maxIndex);
+			}
+			return node.Children[maxIndex[0]];
+		}
+
+		private Node BestChildTieBreaker(ref POGame state, Node node, List<double> maxValue, List<int> maxIndex)
+		{
+			var bestUCTs = new Dictionary<PlayerTask, int>();
+
+			foreach (int i in maxIndex)
+			{
+				bestUCTs.TryAdd(node.Children[i].Action, i);
+			}
+			var bestAction = BestAction(state, bestUCTs.Keys.ToList());
+
+			return node.Children[bestUCTs[bestAction]];
 		}
 	}
 }
