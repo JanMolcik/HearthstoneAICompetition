@@ -92,7 +92,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 				player.Options().First(x => x.PlayerTaskType == PlayerTaskType.END_TURN);*/
 			
 			MCTS mcts = new MCTS(game);
-			PlayerTask result = mcts.UCTSearch();
+			PlayerTask result = mcts.Search();
 			//StopWatch.StopWithMessage(String.Format("Compute {0} options in {1} ms", optcount, StopWatch.ElapsedMilliseconds));
 
 			return result;
@@ -231,7 +231,6 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			}
 
 		}
-
 
 		public static int Score(POGame state, int playerId)
 		{
