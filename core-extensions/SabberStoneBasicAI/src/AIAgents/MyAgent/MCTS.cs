@@ -24,7 +24,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 		{
 			Root = new Node();
 			InitialState = poGame;
-			InitializeNode(Root, ref InitialState);
+			InitializeNode(Root, InitialState);
 			player = poGame.CurrentPlayer;
 
 			//poGame.CurrentPlayer.Options().ForEach(task => Console.Write(task + " "));
@@ -37,36 +37,36 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			while (StopWatch.ElapsedMilliseconds < COMPUTATIONAL_BUDGET)
 			{
 				POGame state = InitialState.getCopy();
-				Node lastNode = TreePolicy(Root, ref state);
+				Node lastNode = TreePolicy(Root, state);
 				double delta = DefaultPolicy(state, lastNode);
 				Backup(lastNode, delta);
 			}
 			StopWatch.Stop();
-			PlayerTask best = ChildSelection.SelectBestChild(ref InitialState, Root, EXPLORATION_CONSTANT, player, SelectionStrategy.UCT, StateRateStrategy.Ejnar).Action;
+			PlayerTask best = ChildSelection.SelectBestChild(InitialState, Root, EXPLORATION_CONSTANT, player, SelectionStrategy.UCT, StateRateStrategy.Ejnar, true).Action;
 			Console.WriteLine("Final task: " + best);
 
 			return best;
 		}
 
-		private Node TreePolicy(Node node, ref POGame state)
+		private Node TreePolicy(Node node, POGame state)
 		{
 			while (state.State != State.COMPLETE)
 			{
 				if (FullyExpanded(node))
 				{
-					node = ChildSelection.SelectBestChild(ref state, node, EXPLORATION_CONSTANT, player, SelectionStrategy.MaxRatioChild, StateRateStrategy.Ejnar);
+					node = ChildSelection.SelectBestChild(state, node, EXPLORATION_CONSTANT, player, SelectionStrategy.MaxRatioChild, StateRateStrategy.Ejnar);
 					state = state.Simulate(new List<PlayerTask> { node.Action })[node.Action];
 				}
 				else
 				{
-					return Expand(node, ref state);
+					return Expand(node, state);
 				}
 			}
 
 			return node;
 		}
 
-		private Node Expand(Node node, ref POGame state)
+		private Node Expand(Node node, POGame state)
 		{
 			Node child;
 
@@ -79,7 +79,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			POGame childState = state.getCopy();
 			childState = childState.Simulate(new List<PlayerTask> { child.Action })[child.Action];
 
-			InitializeNode(child, ref childState);
+			InitializeNode(child, childState);
 
 			return child;
 		}
@@ -126,7 +126,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			}
 		}
 
-		private void InitializeNode(Node node, ref POGame state)
+		private void InitializeNode(Node node, POGame state)
 		{
 			if (state != null)
 			{

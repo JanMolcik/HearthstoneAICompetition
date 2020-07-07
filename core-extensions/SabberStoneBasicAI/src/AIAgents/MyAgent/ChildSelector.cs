@@ -12,12 +12,10 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 {
 	class ChildSelector
 	{
-
-		public Node SelectBestChild(ref POGame state, Node node, double c,
+		public Node SelectBestChild(POGame state, Node node, double c,
 			Controller player, SelectionStrategy selectionMethod,
 			StateRateStrategy stateRateMethod, bool print = false)
 		{
-			// refactor to generic function with different evaluation methods (UCB1, UCT, Verbose Child...)
 			List<double> maxValue = new List<double>();
 			List<int> maxIndex = new List<int>();
 			maxValue.Add(0);
@@ -52,7 +50,6 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			}
 			return node.Children[maxIndex[0]];
 		}
-
 
 		private Node BestChildTieBreaker(ref POGame state, Node node,
 			List<double> maxValue, List<int> maxIndex,
