@@ -13,8 +13,8 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 	class ChildSelector
 	{
 		public Node SelectBestChild(POGame state, Node node, double c,
-			Controller player, SelectionStrategy selectionMethod,
-			StateRateStrategy stateRateMethod, bool print = false)
+			Controller player, Func<Node, Node, double, double> selectionStrategy,
+			Func<POGame, Controller, int> stateRateStrategy, bool print = false)
 		{
 			List<double> maxValue = new List<double>();
 			List<int> maxIndex = new List<int>();
@@ -24,7 +24,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			for (int i = 0; i < node.Children.Count; i++)
 			{
 				Node child = node.Children[i];
-				double value = SelectionMethod(node, child, c, selectionMethod);
+				double value = selectionStrategy(node, child, c);
 
 				if (print) Console.WriteLine(
 					String.Format("Child: {0}, visited: {1}, reward: {2}, UCT value: {3}",
@@ -46,14 +46,14 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 			if (maxValue.Count > 1)
 			{
-				return BestChildTieBreaker(ref state, node, maxValue, maxIndex, player, stateRateMethod);
+				return BestChildTieBreaker(ref state, node, maxValue, maxIndex, player, stateRateStrategy);
 			}
 			return node.Children[maxIndex[0]];
 		}
 
 		private Node BestChildTieBreaker(ref POGame state, Node node,
 			List<double> maxValue, List<int> maxIndex,
-			Controller player, StateRateStrategy method)
+			Controller player, Func<POGame, Controller, int> strategy)
 		{
 			var values = new Dictionary<PlayerTask, int>();
 
@@ -61,43 +61,20 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			{
 				values.TryAdd(node.Children[i].Action, i);
 			}
-			PlayerTask bestAction = BestAction(state, values.Keys.ToList(), player, method);
+			PlayerTask bestAction = BestAction(state, values.Keys.ToList(), player, strategy);
 
 			return node.Children[values[bestAction]];
 		}
 
-		private PlayerTask BestAction(POGame state, List<PlayerTask> actions, Controller player, StateRateStrategy method)
+		private PlayerTask BestAction(POGame state, List<PlayerTask> actions, Controller player, Func<POGame, Controller, int> strategy)
 		{
 			var validOpts = state.Simulate(actions).Where(x => x.Value != null);
 
 			PlayerTask bestAction = validOpts.Any() ?
-				validOpts.OrderBy(x => StateRateMethod(state, player, method)).Last().Key :
+				validOpts.OrderBy(x => strategy(state, player)).Last().Key :
 				actions.First(x => x.PlayerTaskType == PlayerTaskType.END_TURN);
 
 			return bestAction;
-		}
-
-		private double SelectionMethod(Node parent, Node child, double c, SelectionStrategy method)
-		{
-			switch(method)
-			{
-				case SelectionStrategy.UCT:
-					return (child.Reward / child.VisitedCount) + (2 * c * Math.Sqrt(2 * Math.Log(parent.VisitedCount) / child.VisitedCount));
-				case SelectionStrategy.UCB1:
-					return (child.Reward / child.VisitedCount) + Math.Sqrt(2 * Math.Log(parent.VisitedCount) / child.VisitedCount);
-				case SelectionStrategy.MaxChild:
-					return child.Reward;
-				case SelectionStrategy.RobustChild:
-					return child.VisitedCount;
-				case SelectionStrategy.MaxRobustChild:
-					return child.Reward + child.VisitedCount;
-				case SelectionStrategy.MaxRatioChild:
-					return child.Reward / child.VisitedCount;
-				case SelectionStrategy.SecureChild:
-					return (child.Reward / child.VisitedCount) - (c * Math.Sqrt(2 * Math.Log(parent.VisitedCount) / child.VisitedCount));
-				default:
-					return child.Reward / child.VisitedCount;
-			}
 		}
 
 		private int StateRateMethod(POGame state, Controller player, StateRateStrategy method)

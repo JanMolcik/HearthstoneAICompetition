@@ -17,6 +17,8 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 		private readonly Random Rand = new Random();
 		private readonly Controller player;
 		private readonly ChildSelector ChildSelection = new ChildSelector();
+		private readonly SelectionStrategies SelectionStrats = new SelectionStrategies();
+		private readonly StateRateStrategies StateRateStrats = new StateRateStrategies();
 		private POGame InitialState;
 		private Node Root { get; set; }
 
@@ -34,6 +36,8 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 		public PlayerTask Search()
 		{
 			StopWatch.Start();
+			var selectionStrategy = SelectionStrats.GetSelectionStrategy(SelectionStrategy.MaxRobustChild);
+			var stateRateStrategy = StateRateStrats.GetStateRateStrategy(StateRateStrategy.Ejnar);
 			while (StopWatch.ElapsedMilliseconds < COMPUTATIONAL_BUDGET)
 			{
 				POGame state = InitialState.getCopy();
@@ -42,7 +46,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 				Backup(lastNode, delta);
 			}
 			StopWatch.Stop();
-			PlayerTask best = ChildSelection.SelectBestChild(InitialState, Root, EXPLORATION_CONSTANT, player, SelectionStrategy.UCT, StateRateStrategy.Ejnar, true).Action;
+			PlayerTask best = ChildSelection.SelectBestChild(InitialState, Root, EXPLORATION_CONSTANT, player,selectionStrategy, stateRateStrategy, true).Action;
 			Console.WriteLine("Final task: " + best);
 
 			return best;
@@ -54,7 +58,9 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			{
 				if (FullyExpanded(node))
 				{
-					node = ChildSelection.SelectBestChild(state, node, EXPLORATION_CONSTANT, player, SelectionStrategy.MaxRatioChild, StateRateStrategy.Ejnar);
+					var selectionStrategy = SelectionStrats.GetSelectionStrategy(SelectionStrategy.UCT);
+					var stateRateStrategy = StateRateStrats.GetStateRateStrategy(StateRateStrategy.Ejnar);
+					node = ChildSelection.SelectBestChild(state, node, EXPLORATION_CONSTANT, player, selectionStrategy, stateRateStrategy);
 					state = state.Simulate(new List<PlayerTask> { node.Action })[node.Action];
 				}
 				else
