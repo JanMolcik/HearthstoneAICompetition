@@ -105,7 +105,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			switch (method)
 			{
 				case StateRateStrategy.Greedy:
-					return MyAgent.Score(state, player.PlayerId);
+					return new MyScore { Controller = player }.Rate();
 				case StateRateStrategy.Aggro:
 					return new AggroScore { Controller = player }.Rate();
 				case StateRateStrategy.Ramp:
@@ -115,7 +115,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 				case StateRateStrategy.Ejnar:
 					return new EjnarScore { Controller = player }.Rate();
 				default:
-					return MyAgent.Score(state, player.PlayerId);
+					return new MyScore { Controller = player }.Rate();
 			}
 		}
 	}

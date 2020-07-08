@@ -232,7 +232,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 		}
 
-		public static int Score(POGame state, int playerId)
+		private int Score(POGame state, int playerId)
 		{
 			var p = state.CurrentPlayer.PlayerId == playerId ? state.CurrentPlayer : state.CurrentOpponent;
 
