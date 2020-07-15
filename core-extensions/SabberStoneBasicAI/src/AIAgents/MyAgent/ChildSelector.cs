@@ -76,24 +76,5 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 			return bestAction;
 		}
-
-		private int StateRateMethod(POGame state, Controller player, StateRateStrategy method)
-		{
-			switch (method)
-			{
-				case StateRateStrategy.Greedy:
-					return new MyScore { Controller = player }.Rate();
-				case StateRateStrategy.Aggro:
-					return new AggroScore { Controller = player }.Rate();
-				case StateRateStrategy.Ramp:
-					return new RampScore { Controller = player }.Rate();
-				case StateRateStrategy.Control:
-					return new ControlScore { Controller = player }.Rate();
-				case StateRateStrategy.Ejnar:
-					return new EjnarScore { Controller = player }.Rate();
-				default:
-					return new MyScore { Controller = player }.Rate();
-			}
-		}
 	}
 }
