@@ -6,11 +6,8 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 {
 	class SelectionStrategies
 	{
-		private Dictionary<SelectionStrategy, Func<Node, Node, double, double>> SelectionStrategiesDict;
-
-		public SelectionStrategies()
-		{
-			SelectionStrategiesDict = new Dictionary<SelectionStrategy, Func<Node, Node, double, double>>
+		public static readonly Dictionary<SelectionStrategy, Func<Node, Node, double, double>> SelectionStrategiesDict =
+				new Dictionary<SelectionStrategy, Func<Node, Node, double, double>>
 			{
 				{
 					SelectionStrategy.UCT,
@@ -50,9 +47,8 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 					(child.Reward / child.VisitedCount) - (c * Math.Sqrt(2 * Math.Log(parent.VisitedCount) / child.VisitedCount))
 				}
 			};
-		}
 
-		public Func<Node, Node, double, double> GetSelectionStrategy(SelectionStrategy strategy)
+		public static Func<Node, Node, double, double> GetSelectionStrategy(SelectionStrategy strategy)
 		{
 			return SelectionStrategiesDict.GetValueOrDefault(strategy, SelectionStrategiesDict[SelectionStrategy.MaxRatioChild]);
 		}

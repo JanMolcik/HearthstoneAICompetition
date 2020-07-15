@@ -9,11 +9,8 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 {
 	class StateRateStrategies
 	{
-		private Dictionary<StateRateStrategy, Func<POGame, Controller, int>> StateRateStrategiesDict;
-
-		public StateRateStrategies()
-		{
-			StateRateStrategiesDict = new Dictionary<StateRateStrategy, Func<POGame, Controller, int>>
+		public static readonly Dictionary<StateRateStrategy, Func<POGame, Controller, int>> StateRateStrategiesDict =
+				new Dictionary<StateRateStrategy, Func<POGame, Controller, int>>
 			{
 				{ StateRateStrategy.Greedy, (POGame state, Controller player) => new MyScore { Controller = player }.Rate() },
 
@@ -25,9 +22,8 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 				{ StateRateStrategy.Control, (POGame state, Controller player) => new ControlScore { Controller = player }.Rate() }
 			};
-		}
 
-		public Func<POGame, Controller, int> GetStateRateStrategy(StateRateStrategy strategy)
+		public static Func<POGame, Controller, int> GetStateRateStrategy(StateRateStrategy strategy)
 		{
 			return StateRateStrategiesDict.GetValueOrDefault(strategy, StateRateStrategiesDict[StateRateStrategy.Greedy]);
 		}

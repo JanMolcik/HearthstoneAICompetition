@@ -91,7 +91,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 				validOpts.Select(x => scoreAsync(x, player.PlayerId, (optsCount >= 5) ? ((optsCount >= 25) ? 1 : 2) : 3)).OrderBy(x => x.Result.Value).Last().Result.Key :
 				player.Options().First(x => x.PlayerTaskType == PlayerTaskType.END_TURN);*/
 			
-			MCTS mcts = new MCTS(game);
+			MCTS mcts = new MCTS(game, DecksDict, ProbabilitiesDict);
 			PlayerTask result = mcts.Search();
 			//StopWatch.StopWithMessage(String.Format("Compute {0} options in {1} ms", optcount, StopWatch.ElapsedMilliseconds));
 
