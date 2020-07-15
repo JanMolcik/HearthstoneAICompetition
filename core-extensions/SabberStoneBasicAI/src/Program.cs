@@ -526,10 +526,10 @@ namespace SabberStoneBasicAI
 			var gameConfig = new GameConfig()
 			{
 				StartPlayer = rnd.Next(1, 2),
-				Player1HeroClass = CardClass.ROGUE,
-				Player2HeroClass = CardClass.ROGUE,
-				Player1Deck = Decks.MiraclePirateRogue,
-				Player2Deck = Decks.MiraclePirateRogue,
+				Player1HeroClass = CardClass.PRIEST,
+				Player2HeroClass = CardClass.PRIEST,
+				Player1Deck = Decks.RenoKazakusDragonPriest,
+				Player2Deck = Decks.RenoKazakusDragonPriest,
 				FillDecks = false,
 				Shuffle = true,
 				Logging = true
