@@ -44,7 +44,8 @@ namespace SabberStoneBasicAI
 			//TestFullGames();
 			//TestTournament();
 
-			TestPOGameMyAgent(1);
+			//TestPOGameMyAgent(1);
+			TestPOGameTestAgent(200);
 
 			Console.WriteLine("Test ended!");
 			Console.ReadLine();
@@ -526,10 +527,10 @@ namespace SabberStoneBasicAI
 			var gameConfig = new GameConfig()
 			{
 				StartPlayer = rnd.Next(1, 2),
-				Player1HeroClass = CardClass.PRIEST,
-				Player2HeroClass = CardClass.PRIEST,
-				Player1Deck = Decks.RenoKazakusDragonPriest,
-				Player2Deck = Decks.RenoKazakusDragonPriest,
+				Player1HeroClass = CardClass.PALADIN,
+				Player2HeroClass = CardClass.PALADIN,
+				Player1Deck = Decks.MidrangeBuffPaladin,
+				Player2Deck = Decks.MidrangeBuffPaladin,
 				FillDecks = false,
 				Shuffle = true,
 				Logging = true
@@ -538,6 +539,39 @@ namespace SabberStoneBasicAI
 			Console.WriteLine("Setup POGameHandler");
 			AbstractAgent player1 = new MyAgent();
 			AbstractAgent player2 = new GreedyAgent();
+			var gameHandler = new POGameHandler(gameConfig, player1, player2, repeatDraws: false);
+
+			Console.WriteLine("Simulate Games");
+			gameHandler.PlayGames(nr_of_games: count, addResultToGameStats: true, debug: false);
+
+			GameStats gameStats = gameHandler.getGameStats();
+
+			gameStats.printResults();
+
+			Console.WriteLine("Test successful");
+			Console.ReadLine();
+		}
+
+		public static void TestPOGameTestAgent(int count)
+		{
+			Console.WriteLine("Setup gameConfig");
+			Random rnd = new Random();
+
+			var gameConfig = new GameConfig()
+			{
+				StartPlayer = rnd.Next(1, 2),
+				Player1HeroClass = CardClass.PALADIN,
+				Player2HeroClass = CardClass.PALADIN,
+				Player1Deck = Decks.MidrangeBuffPaladin,
+				Player2Deck = Decks.MidrangeBuffPaladin,
+				FillDecks = false,
+				Shuffle = true,
+				Logging = true
+			};
+
+			Console.WriteLine("Setup POGameHandler");
+			AbstractAgent player1 = new TestAgent();
+			AbstractAgent player2 = new DynamicLookaheadAgent();
 			var gameHandler = new POGameHandler(gameConfig, player1, player2, repeatDraws: false);
 
 			Console.WriteLine("Simulate Games");
