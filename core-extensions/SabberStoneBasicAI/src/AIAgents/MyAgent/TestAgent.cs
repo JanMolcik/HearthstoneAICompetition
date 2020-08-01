@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using SabberStoneBasicAI.Meta;
 using SabberStoneBasicAI.PartialObservation;
+using SabberStoneCore.Enums;
 using SabberStoneCore.Model;
 using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Model.Zones;
@@ -16,8 +17,10 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 		private readonly string[] DeckNames = new string[] {"AggroPirateWarrior", "MidrangeBuffPaladin", "MidrangeJadeShaman", "MidrangeSecretHunter",
 			"MiraclePirateRogue", "RenoKazakusDragonPriest", "RenoKazakusMage", "ZooDiscardWarlock" };
 		private readonly Dictionary<string, List<Card>> DecksDict = new Dictionary<string, List<Card>>();
+		private Dictionary<string, double> ProbabilitiesDict = new Dictionary<string, double>();
 		private readonly string deckName = "MidrangeBuffPaladin";
 		private readonly Random Rand = new Random();
+		private OpponentActionsEstimator ActionEstimator;
 
 		public override void FinalizeAgent()
 		{
@@ -29,7 +32,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 		public override void InitializeAgent()
 		{
-			Type deckType = typeof(Decks);
+			System.Type deckType = typeof(Decks);
 
 			/* -------------- Constructing possible decks ------------------- */
 
@@ -42,6 +45,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 				//cards.ToList().ForEach(c => Console.WriteLine(c));
 				DecksDict.Add(deckName, cards.ToList());
+				ProbabilitiesDict.Add(deckName, 0);
 			}
 
 			//DecksDict.Values.First().ForEach(c => Console.WriteLine(c));
@@ -54,14 +58,19 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 		public override PlayerTask GetMove(POGame poGame)
 		{
 			var player = poGame.CurrentPlayer;
+			var opponent = poGame.CurrentOpponent;
 			var validOpts = poGame.Simulate(player.Options()).Where(x => x.Value != null);
-			/*
-			Co chci udelat:
-			 - otestovat simulaci card draw
-			    - simulovat akce
-			 - otestovat simulaci oponentových karet
-			 */
-			//var actions = DrawSimulation();
+			var history = opponent.PlayHistory;
+
+			if (player.MulliganState == Mulligan.INPUT)
+			{
+				List<int> mulligan = new CustomScore().MulliganRule().Invoke(player.Choice.Choices.Select(p => poGame.getGame().IdEntityDic[p]).ToList());
+				return ChooseTask.Mulligan(player, mulligan);
+			}
+			updateProbabilities();
+
+			ActionEstimator = new OpponentActionsEstimator(DecksDict, ProbabilitiesDict);
+
 			int optionsCount = validOpts.Count();
 
 			var action = validOpts.Any() ?
@@ -71,8 +80,34 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			//Console.WriteLine("TestAgent: " + action);
 			return action;
 
-		}
+			void updateProbabilities()
+			{
+				/* ----------- Counting probabilities ------------ */
+				foreach (KeyValuePair<string, List<Card>> deck in DecksDict)
+				{
+					int similarCount = 0;
+					var playedCards = history.Select(h => h.SourceCard).ToList();
+					var deckCards = deck.Value;
+					var deckCardsDistinct = deckCards.Distinct().ToList();
 
+					playedCards
+						.ForEach(playedCard =>
+						{
+							deckCardsDistinct.ForEach(deckCard =>
+							{
+								if (playedCard.Name == deckCard.Name)
+								{
+									similarCount++;
+								}
+							});
+						});
+
+					double probability = Math.Round((double)similarCount / deckCards.Count(), 2);
+					ProbabilitiesDict[deck.Key] = probability;
+					//if (probability > 0) Console.WriteLine(deck.Key + " has probability of " + ProbabilitiesDict[deck.Key] * 100 + "%");
+				}
+			}
+		}
 
 		private KeyValuePair<PlayerTask, int> Score(KeyValuePair<PlayerTask, POGame> state, int player_id, int max_depth = 5)
 		{
@@ -82,21 +117,22 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 				bool uncertainity = state.Value.CurrentPlayer.Options()
 					.Any(option => option.PlayerTaskType == PlayerTaskType.PLAY_CARD && option.Source.Card.Name == "No Way!");
 
-				Controller player = state.Value.CurrentPlayer.Clone(state.Value.getGame());
+				Controller player = state.Value.CurrentPlayer;
 
 				List<PlayerTask> actions = null;
-
+				
 				if (uncertainity)
 				{
 					actions = state.Value.CurrentPlayer.PlayerId == player_id ?
-						DrawSimulation(player) :
-						ActionEstimator(state.Value, player);
+						player.Options() ://DrawSimulation(player) :
+						ActionEstimaton(state.Value, player);
 				}
 				else
 				{
-					actions = state.Value.CurrentPlayer.Options();
+					actions = player.Options();
 				}
-
+				
+				//actions = state.Value.CurrentPlayer.Options();
 				var subactions = state.Value.Simulate(actions).Where(x => x.Value != null);
 
 				foreach (var subaction in subactions)
@@ -114,10 +150,10 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			return new MyScore { Controller = p }.Rate();
 		}
 
-		private List<PlayerTask> ActionEstimator(POGame state, Controller player)
+		private List<PlayerTask> ActionEstimaton(POGame state, Controller player)
 		{
 			// estimate best action for upcoming game state which depends on probability of opponent's actions
-			// a.k.a. simulate his possibilities (remove incomplete information) and choose most promising (maybe more?)
+			// a.k.a. simulate his possibilities (remove incomplete information) and choose most promising
 
 			//Console.WriteLine("Estimator " + player.PlayerId);
 			var history = player.PlayHistory;
@@ -170,7 +206,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 						clearHand(player);
 					}
 
-					player.HandZone.Add(Entity.FromCard(in player, Cards.FromId(deckCard.Id)));
+					player.HandZone.Add(Entity.FromCard(in player, deckCard));
 				}
 				else
 				{
@@ -187,16 +223,18 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			resultActions.AddRange(
 				subactions
 					.Where(action => action.PlayerTaskType == PlayerTaskType.PLAY_CARD)
-					.Where(action => !(action.HasSource && action.Source.ZonePosition > player.BoardZone.Count))
 					.OrderBy(action => StateRateStrategies
 						.GetStateRateStrategy(StateRateStrategy.Greedy)(state, player))
 					.TakeLast(removed)
 					);
+
+			// adding other tasks such as attack, end turn, etc..
 			resultActions.AddRange(player.Options());
 
+			// now adding corresponding cards of chosen best tasks to player's hand 
 			foreach (PlayerTask task in resultActions)
 			{
-				if (task.HasSource && task.PlayerTaskType == PlayerTaskType.PLAY_CARD)
+				if (task.PlayerTaskType == PlayerTaskType.PLAY_CARD && task.HasSource && !player.HandZone.IsFull && !player.HandZone.Contains(task.Source))
 				{
 					player.HandZone.Add(task.Source);
 				}
@@ -217,7 +255,6 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 				//printPlayerHand(pplayer);
 			}
 		}
-
 
 		private List<PlayerTask> DrawSimulation(Controller player)
 		{
