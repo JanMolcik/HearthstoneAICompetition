@@ -16,7 +16,6 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 		private readonly Dictionary<string, List<Card>> DecksDict = new Dictionary<string, List<Card>>();
 		private readonly Dictionary<string, double> ProbabilitiesDict = new Dictionary<string, double>();
 
-
 		public OpponentActionsEstimator(Dictionary<string, List<Card>> decksDict, Dictionary<string, double> probabilitiesDict)
 		{
 			DecksDict = decksDict;
@@ -83,7 +82,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 									.Where(option => option.PlayerTaskType == PlayerTaskType.PLAY_CARD)
 									.ToList()
 									.ForEach(option => subactions.Add(option));
-								clearHand(player);
+								ClearHand(player);
 							}
 
 							if (deckCard.Class == player.HeroClass || deckCard.Class == CardClass.NEUTRAL)
@@ -97,7 +96,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 								.Where(option => option.PlayerTaskType == PlayerTaskType.PLAY_CARD)
 								.ToList()
 								.ForEach(option => subactions.Add(option));
-							clearHand(player);
+							ClearHand(player);
 							break;
 						}
 					};
@@ -114,10 +113,9 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 					foreach (PlayerTask task in resultActions)
 					{
-						if (task.HasSource && task.PlayerTaskType == PlayerTaskType.PLAY_CARD)
+						if (task.HasSource && task.PlayerTaskType == PlayerTaskType.PLAY_CARD && !player.HandZone.IsFull && !player.HandZone.Contains(task.Source))
 						{
-							if (!player.HandZone.Contains(task.Source) && !player.HandZone.IsFull)
-								player.HandZone.Add(task.Source);
+							player.HandZone.Add(task.Source);
 						}
 					}
 				}
@@ -128,13 +126,15 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			//Console.WriteLine();
 
 			return resultActions.Count > 0 ? resultActions : player.Options();
+		}
 
-			void clearHand(Controller pplayer)
+
+
+		private void ClearHand(Controller pplayer)
+		{
+			while (pplayer.HandZone.Count() > 0)
 			{
-				while (pplayer.HandZone.Count() > 0)
-				{
-					pplayer.HandZone.Remove(0);
-				}
+				pplayer.HandZone.Remove(0);
 			}
 		}
 	}

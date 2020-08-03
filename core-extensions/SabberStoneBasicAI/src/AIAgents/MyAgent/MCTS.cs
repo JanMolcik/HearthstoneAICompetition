@@ -1,4 +1,5 @@
 ﻿using SabberStoneBasicAI.AIAgents;
+using SabberStoneBasicAI.Meta;
 using SabberStoneBasicAI.PartialObservation;
 using SabberStoneCore.Enums;
 using SabberStoneCore.Model;
@@ -14,26 +15,28 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 	class MCTS
 	{
 		private readonly double EXPLORATION_CONSTANT = 1 / Math.Sqrt(2); // magic constant for BestChild function
-		private readonly int COMPUTATIONAL_BUDGET = 7500; // in ms
+		private readonly int COMPUTATIONAL_BUDGET = 10000; // in ms
 		private readonly CustomStopwatch StopWatch = new CustomStopwatch();
 		private readonly Random Rand = new Random();
 		private readonly Controller player;
 		private readonly ChildSelector ChildSelection = new ChildSelector();
 		private readonly Dictionary<string, List<Card>> DecksDict = new Dictionary<string, List<Card>>();
-		private readonly string deckName = "MidrangeBuffPaladin";
-		private Dictionary<string, double> ProbabilitiesDict = new Dictionary<string, double>();
+		private readonly Dictionary<string, double> ProbabilitiesDict = new Dictionary<string, double>();
+		private readonly string[] DeckNames = new string[] {"AggroPirateWarrior", "MidrangeBuffPaladin", "MidrangeJadeShaman", "MidrangeSecretHunter",
+			"MiraclePirateRogue", "RenoKazakusDragonPriest", "RenoKazakusMage", "ZooDiscardWarlock" };
+		private OpponentActionsEstimator ActionEstimator;
 		private POGame InitialState;
 		private Node Root { get; set; }
 
 		public MCTS(POGame poGame, Dictionary<string, List<Card>> decksDict, Dictionary<string, double> probsDict)
 		{
-			Root = new Node();
+			player = poGame.CurrentPlayer;
+			Root = new Node(player.PlayerId);
 			InitialState = poGame;
 			InitializeNode(Root, InitialState);
-			player = poGame.CurrentPlayer;
 			DecksDict = decksDict;
 			ProbabilitiesDict = probsDict;
-
+			ActionEstimator = new OpponentActionsEstimator(DecksDict, ProbabilitiesDict);
 			//poGame.CurrentPlayer.Options().ForEach(task => Console.Write(task + " "));
 			Console.WriteLine();
 		}
@@ -41,13 +44,13 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 		public PlayerTask Search()
 		{
 			StopWatch.Start();
-			var selectionStrategy = SelectionStrategies.GetSelectionStrategy(SelectionStrategy.MaxRatioChild);
-			var stateRateStrategy = StateRateStrategies.GetStateRateStrategy(StateRateStrategy.Ejnar);
+			var selectionStrategy = SelectionStrategies.GetSelectionStrategy(SelectionStrategy.MaxRobustChild);
+			var stateRateStrategy = StateRateStrategies.GetStateRateStrategy(StateRateStrategy.Greedy);
 			while (StopWatch.ElapsedMilliseconds < COMPUTATIONAL_BUDGET)
 			{
 				POGame state = InitialState.getCopy();
 				Node lastNode = TreePolicy(Root, state);
-				double delta = DefaultPolicy(state, lastNode);
+				KeyValuePair<int, float> delta = DefaultPolicy(state, lastNode);
 				Backup(lastNode, delta);
 			}
 			StopWatch.Stop();
@@ -95,9 +98,9 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			return child;
 		}
 
-		private double DefaultPolicy(POGame state, Node node)
+		private KeyValuePair<int, float> DefaultPolicy(POGame state, Node node)
 		{
-			double result = -1;
+			KeyValuePair<int, float> result = new KeyValuePair<int, float>(state.CurrentPlayer.PlayerId, 0.5f);
 			while (state.State != State.COMPLETE)
 			{
 				// instead of removing unknown cards I should rather try guess what is
@@ -105,53 +108,64 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 				List<PlayerTask> actions = state.CurrentPlayer.Options();
 				List<PlayerTask> oldActions = new List<PlayerTask>(actions);
+				bool uncertainity = state.CurrentPlayer.Options()
+					.Any(option => option.PlayerTaskType == PlayerTaskType.PLAY_CARD && option.Source.Card.Name == "No Way!");
 
-				int removed = actions.RemoveAll(action => action.PlayerTaskType == PlayerTaskType.PLAY_CARD && action.Source.Card.Name == "No Way!");
-				
-				if (removed > 0)
+				Controller currentPlayer = state.CurrentPlayer;
+
+				if (uncertainity)
 				{
 					// player's drawn cards are also unknown -> need to simulate
 
-					actions = state.CurrentPlayer.PlayerId == player.PlayerId ? DrawSimulation(player, removed) : ActionEstimator(state, actions, state.CurrentPlayer, removed);
-					actions.RemoveAll(action => action.PlayerTaskType == PlayerTaskType.PLAY_CARD && action.Source.Card.Name == "No Way!");
+					actions = state.CurrentPlayer.PlayerId == player.PlayerId ? DrawSimulation(currentPlayer) : ActionEstimator.ActionEstimaton(state, currentPlayer);
+					//actions.RemoveAll(action => action.PlayerTaskType == PlayerTaskType.PLAY_CARD && action.Source.Card.Name == "No Way!");
 					/*actions
 						.ForEach(action => Console.WriteLine(action + ", player: " + state.CurrentPlayer.PlayerId));*/
 				}
 
-				// instead of random action I could be looking for best actions (really tho?)
-				PlayerTask randomAction = actions[Rand.Next(actions.Count())];
-				//Console.WriteLine("Choosing: " + randomAction);
-				PlayerTask bestAction = actions
-					.OrderBy(action => StateRateStrategies.GetStateRateStrategy(StateRateStrategy.Greedy)(state, player))
-					.Last();
-				//Console.WriteLine("Choosing: " + bestAction);
+				// instead of random action I could be looking for best actions
+				if (actions.Any())
+				{
+					PlayerTask randomAction = actions[Rand.Next(actions.Count())];
+					//Console.WriteLine("Choosing: " + randomAction);
+					PlayerTask bestAction = actions
+						.OrderBy(action => StateRateStrategies.GetStateRateStrategy(StateRateStrategy.Greedy)(state, player))
+						.Last();
+					//Console.WriteLine("Choosing: " + bestAction);
 
-				state = state.Simulate(new List<PlayerTask> { bestAction })[bestAction];
+					state = state.Simulate(new List<PlayerTask> { bestAction })[bestAction];
+				}
+				else
+				{
+					PlayerTask endTurn = oldActions.First(action => action.PlayerTaskType == PlayerTaskType.END_TURN);
+					state = state.Simulate(new List<PlayerTask> { endTurn })[endTurn];
+				}
 
-				if (state == null) return 0.5;
+				if (state == null) return new KeyValuePair<int, float>(currentPlayer.PlayerId, 0.5f);
 			}
 
 			if (state.CurrentPlayer.PlayState == PlayState.CONCEDED || state.CurrentPlayer.PlayState == PlayState.LOST)
 			{
-				result = 0;
+				result = new KeyValuePair<int, float>(state.CurrentPlayer.PlayerId, 0);
 			}
 			else if (state.CurrentPlayer.PlayState == PlayState.WON)
 			{
-				result = 1;
+				result = new KeyValuePair<int, float>(state.CurrentPlayer.PlayerId, 1);
 			}
 			else if (state.CurrentPlayer.PlayState == PlayState.TIED)
 			{
-				result = 0.5;
+				result = new KeyValuePair<int, float>(state.CurrentPlayer.PlayerId, 0.5f);
 			}
 			return result;
 		}
 
-		private void Backup(Node node, double delta)
+		private void Backup(Node node, KeyValuePair<int, float> delta)
 		{
 			while (node != null)
 			{
 				node.VisitedCount++;
-				node.Reward += delta;
+				// if the delta reward corresponds to other player, just reverse the reward (zero-sum game)
+				node.Reward += delta.Key == node.PlayerID ? delta.Value : Math.Abs(delta.Value - 1);
 				node = node.Parent;
 			}
 		}
@@ -162,7 +176,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			{
 				state.CurrentPlayer.Options().ForEach(option =>
 				{
-					node.Children.Add(new Node(option, node));
+					node.Children.Add(new Node(option, node, state.CurrentPlayer.PlayerId));
 				});
 			}
 		}
@@ -176,21 +190,42 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			return true;
 		}
 
-		private List<PlayerTask> DrawSimulation(Controller player, int count)
+		private List<PlayerTask> DrawSimulation(Controller player)
 		{
 			//Console.WriteLine("Draw Simulation:");
+			var uncertainActions = player.Options();
 			var history = player.PlayHistory;
-			var deckCards = DecksDict[deckName];
+			List<Card> remainingCards = new List<Card>(player.DeckCards);
 			var playedCards = history.Select(h => h.SourceCard).ToList();
+			int removed = 0;
 			// filter played cards and cards in hand
-			var remainingCards = deckCards.Where(card => !ContainsCard(playedCards, card) && !HandContainsCard(player.HandZone, card)).ToList();
+
+			foreach (Card playedCard in playedCards)
+			{
+				remainingCards.Remove(playedCard);
+			}
+
+			for (int i = 0; i < player.HandZone.Count; i++)
+			{
+				IPlayable handCard = player.HandZone[i];
+				if (handCard.Card.Name == "No Way!")
+				{
+					//Console.WriteLine("Removing: " + handCard);
+					player.HandZone.Remove(i);
+					removed++;
+					i--;
+				}
+				else
+				{
+					remainingCards.Remove(handCard.Card);
+				}
+			}
 
 			//Console.WriteLine(player.HandZone.Count);
 
-			/*
-			for (int i = 0; i < count; i++)
+			for (int i = 0; i < removed; i++)
 			{
-				if (!player.HandZone.IsFull)
+				if (!player.HandZone.IsFull && remainingCards.Any())
 				{
 					int randomIndex = Rand.Next(remainingCards.Count);
 					player.HandZone.Add(Entity.FromCard(in player, remainingCards[randomIndex]));
@@ -200,10 +235,11 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			}
 
 			//player.Options().ForEach(option => Console.WriteLine(option));
-			*/
+
 			return player.Options();
 		}
 
+		/*
 		private List<PlayerTask> ActionEstimator(POGame state, List<PlayerTask> actions, Controller player, int count)
 		{
 			// estimate best action for upcoming game state which depends on probability of opponents actions
@@ -283,10 +319,11 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 				//printPlayerHand(pplayer);
 			}
 		}
+		*/
 
 		private bool ContainsCard(List<Card> deck, Card card)
 		{
-			foreach(Card deckCard in deck)
+			foreach (Card deckCard in deck)
 			{
 				if (deckCard.AssetId == card.AssetId) return true;
 			}
@@ -296,7 +333,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 		private bool HandContainsCard(HandZone hand, Card card)
 		{
-			foreach(IPlayable handCard in hand)
+			foreach (IPlayable handCard in hand)
 			{
 				if (handCard.Card.AssetId == card.AssetId) return true;
 			}
