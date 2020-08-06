@@ -89,7 +89,7 @@ namespace SabberStoneBasicAI.AIAgents
 				validOpts.Select(x => score(x, player.PlayerId, (optcount >= 5) ? ((optcount >= 25) ? 1 : 2) : 3)).OrderBy(x => x.Value).Last().Key :
 				player.Options().First(x => x.PlayerTaskType == PlayerTaskType.END_TURN);
 
-			//Console.WriteLine("Dynamic Agent: " + returnValue);
+			Console.WriteLine("Dynamic Agent: " + returnValue);
 			return returnValue;
 
 			KeyValuePair<PlayerTask, int> score(KeyValuePair<PlayerTask, POGame> state, int player_id, int max_depth = 3)

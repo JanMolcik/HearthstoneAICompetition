@@ -25,7 +25,7 @@ using SabberStoneBasicAI.Score;
 using SabberStoneBasicAI.AIAgents;
 using SabberStoneBasicAI.PartialObservation;
 using SabberStoneBasicAI.CompetitionEvaluation;
-using SabberStoneBasicAI.AIAgents.MyAgent;
+using SabberStoneBasicAI.AIAgents.MyAgents;
 
 namespace SabberStoneBasicAI
 {
@@ -44,8 +44,8 @@ namespace SabberStoneBasicAI
 			//TestFullGames();
 			//TestTournament();
 
-			//TestPOGameMyAgent(1);
-			TestPOGameTestAgent(200);
+			TestPOGameMyAgent(10);
+			//TestPOGameTestAgent(1);
 
 			Console.WriteLine("Test ended!");
 			Console.ReadLine();
@@ -526,7 +526,7 @@ namespace SabberStoneBasicAI
 
 			var gameConfig = new GameConfig()
 			{
-				StartPlayer = rnd.Next(1, 2),
+				StartPlayer = -1,
 				Player1HeroClass = CardClass.PALADIN,
 				Player2HeroClass = CardClass.PALADIN,
 				Player1Deck = Decks.MidrangeBuffPaladin,
@@ -559,7 +559,7 @@ namespace SabberStoneBasicAI
 
 			var gameConfig = new GameConfig()
 			{
-				StartPlayer = rnd.Next(1, 2),
+				StartPlayer = -1,
 				Player1HeroClass = CardClass.PALADIN,
 				Player2HeroClass = CardClass.PALADIN,
 				Player1Deck = Decks.MidrangeBuffPaladin,
@@ -592,7 +592,7 @@ namespace SabberStoneBasicAI
 
 			var gameConfig = new GameConfig()
 			{
-				StartPlayer = rnd.Next(1, 2),
+				StartPlayer = -1,
 				Player1HeroClass = CardClass.PRIEST,
 				Player2HeroClass = CardClass.PRIEST,
 				Player1Deck = Decks.RenoKazakusDragonPriest,

@@ -146,7 +146,7 @@ namespace SabberStoneBasicAI.PartialObservation
 				if (!PlayGame(addResultToGameStats, debug))
 					i -= 1;     // invalid game
 								//pb.Update(i);
-								//Console.WriteLine("play game " + i + " out of " + nr_of_games);
+				else Console.WriteLine("Played game " + (i + 1) + " out of " + nr_of_games);
 			}
 		}
 

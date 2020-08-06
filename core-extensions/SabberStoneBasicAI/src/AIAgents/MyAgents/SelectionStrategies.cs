@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SabberStoneBasicAI.AIAgents.MyAgent
+namespace SabberStoneBasicAI.AIAgents.MyAgents
 {
 	class SelectionStrategies
 	{
@@ -12,7 +12,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 				{
 					SelectionStrategy.UCT,
 					(Node parent, Node child, double c) =>
-					(child.Reward / child.VisitedCount) + (2 * c * Math.Sqrt(2 * Math.Log(parent.VisitedCount) / child.VisitedCount))
+					(child.Reward / child.VisitedCount) + c * Math.Sqrt(2 * Math.Log(parent.VisitedCount) / child.VisitedCount)
 				},
 
 				{

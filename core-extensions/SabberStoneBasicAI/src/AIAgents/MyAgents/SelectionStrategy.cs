@@ -1,4 +1,4 @@
-﻿namespace SabberStoneBasicAI.AIAgents.MyAgent
+﻿namespace SabberStoneBasicAI.AIAgents.MyAgents
 {
 	public enum SelectionStrategy
 	{

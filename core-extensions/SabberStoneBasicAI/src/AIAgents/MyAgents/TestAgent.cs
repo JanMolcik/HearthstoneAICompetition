@@ -10,7 +10,7 @@ using SabberStoneCore.Model.Entities;
 using SabberStoneCore.Model.Zones;
 using SabberStoneCore.Tasks.PlayerTasks;
 
-namespace SabberStoneBasicAI.AIAgents.MyAgent
+namespace SabberStoneBasicAI.AIAgents.MyAgents
 {
 	class TestAgent : AbstractAgent
 	{
@@ -20,7 +20,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 		private Dictionary<string, double> ProbabilitiesDict = new Dictionary<string, double>();
 		private readonly string deckName = "MidrangeBuffPaladin";
 		private readonly Random Rand = new Random();
-		private OpponentActionsEstimator ActionEstimator;
+		private ActionEstimator ActionEstimator;
 
 		public override void FinalizeAgent()
 		{
@@ -64,20 +64,23 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 			if (player.MulliganState == Mulligan.INPUT)
 			{
-				List<int> mulligan = new CustomScore().MulliganRule().Invoke(player.Choice.Choices.Select(p => poGame.getGame().IdEntityDic[p]).ToList());
+				List<int> mulligan = new MyScore().MulliganRule().Invoke(player.Choice.Choices.Select(p => poGame.getGame().IdEntityDic[p]).ToList());
 				return ChooseTask.Mulligan(player, mulligan);
 			}
 			updateProbabilities();
 
-			ActionEstimator = new OpponentActionsEstimator(DecksDict, ProbabilitiesDict);
+			ActionEstimator = new ActionEstimator(DecksDict, ProbabilitiesDict);
 
 			int optionsCount = validOpts.Count();
+
+			Console.WriteLine("Valid options for TestAgent: ");
+			validOpts.ToList().ForEach(option => Console.WriteLine(option));
 
 			var action = validOpts.Any() ?
 				validOpts.Select(option => Score(option, poGame.CurrentPlayer.PlayerId, (optionsCount >= 5) ? ((optionsCount >= 25) ? 1 : 2) : 3)).OrderBy(pair => pair.Value).Last().Key :
 				player.Options().First(option => option.PlayerTaskType == PlayerTaskType.END_TURN);
 
-			//Console.WriteLine("TestAgent: " + action);
+			Console.WriteLine("TestAgent: " + action);
 			return action;
 
 			void updateProbabilities()
@@ -145,6 +148,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 		private int Score(POGame state, int playerId)
 		{
+			bool playerTurn = state.CurrentPlayer.PlayerId == playerId;
 			var p = state.CurrentPlayer.PlayerId == playerId ? state.CurrentPlayer : state.CurrentOpponent;
 
 			return new MyScore { Controller = p }.Rate();

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace SabberStoneBasicAI.AIAgents.MyAgent
+namespace SabberStoneBasicAI.AIAgents.MyAgents
 {
 	class CustomStopwatch : Stopwatch
 	{

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SabberStoneBasicAI.AIAgents.MyAgent
+namespace SabberStoneBasicAI.AIAgents.MyAgents
 {
 	class ChildSelector
 	{
@@ -16,9 +16,12 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 			Controller player, Func<Node, Node, double, double> selectionStrategy,
 			Func<POGame, Controller, int> stateRateStrategy, bool print = false)
 		{
+
+			if (!node.Children.Any()) return node;
+
 			List<double> maxValue = new List<double>();
 			List<int> maxIndex = new List<int>();
-			maxValue.Add(0);
+			maxValue.Add(Double.MinValue);
 			maxIndex.Add(0);
 
 			for (int i = 0; i < node.Children.Count; i++)
@@ -27,7 +30,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 				double value = selectionStrategy(node, child, c);
 
 				if (print) Console.WriteLine(
-					String.Format("Child: {0}, visited: {1}, reward: {2}, UCT value: {3}",
+					String.Format("Child: {0}, visited: {1}, reward: {2}, search value: {3}",
 					child.Action, child.VisitedCount, child.Reward, value));
 
 				if (value > maxValue[0])
@@ -46,12 +49,12 @@ namespace SabberStoneBasicAI.AIAgents.MyAgent
 
 			if (maxValue.Count > 1)
 			{
-				return BestChildTieBreaker(ref state, node, maxValue, maxIndex, player, stateRateStrategy);
+				return BestChildTieBreaker(state, node, maxValue, maxIndex, player, stateRateStrategy);
 			}
 			return node.Children[maxIndex[0]];
 		}
 
-		private Node BestChildTieBreaker(ref POGame state, Node node,
+		private Node BestChildTieBreaker(POGame state, Node node,
 			List<double> maxValue, List<int> maxIndex,
 			Controller player, Func<POGame, Controller, int> strategy)
 		{
