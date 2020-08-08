@@ -44,7 +44,58 @@ namespace SabberStoneBasicAI
 			//TestFullGames();
 			//TestTournament();
 
-			TestPOGameMyAgent(10);
+			/* DONE
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new RandomAgent());
+			
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new RandomAgent());
+
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new RandomAgent());
+			*/
+			/* DONE
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new GreedyAgent());
+
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new GreedyAgent());
+
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new GreedyAgent());
+			*/
+			/*
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new BeamSearchAgent());
+
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new BeamSearchAgent());
+
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new BeamSearchAgent());
+			*/
+			/*
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new DynamicLookaheadAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new DynamicLookaheadAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new DynamicLookaheadAgent());
+			*/
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new DynamicLookaheadAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new DynamicLookaheadAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new DynamicLookaheadAgent());
+
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new DynamicLookaheadAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new DynamicLookaheadAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new DynamicLookaheadAgent());
+			
 			//TestPOGameTestAgent(1);
 
 			Console.WriteLine("Test ended!");
@@ -519,18 +570,17 @@ namespace SabberStoneBasicAI
 			Console.WriteLine($"Player2: {String.Join(",", player2Stats)}");
 		}
 
-		public static void TestPOGameMyAgent(int count)
+		public static void TestPOGameMyAgent(int count, CardClass player, CardClass opponent, List<Card> playerDeck, List<Card> opponentDeck, AbstractAgent opponentAgent)
 		{
 			Console.WriteLine("Setup gameConfig");
-			Random rnd = new Random();
 
 			var gameConfig = new GameConfig()
 			{
 				StartPlayer = -1,
-				Player1HeroClass = CardClass.PALADIN,
-				Player2HeroClass = CardClass.PALADIN,
-				Player1Deck = Decks.MidrangeBuffPaladin,
-				Player2Deck = Decks.MidrangeBuffPaladin,
+				Player1HeroClass = player,
+				Player2HeroClass = opponent,
+				Player1Deck = playerDeck,
+				Player2Deck = opponentDeck,
 				FillDecks = false,
 				Shuffle = true,
 				Logging = true
@@ -538,7 +588,7 @@ namespace SabberStoneBasicAI
 
 			Console.WriteLine("Setup POGameHandler");
 			AbstractAgent player1 = new MyAgent();
-			AbstractAgent player2 = new GreedyAgent();
+			AbstractAgent player2 = opponentAgent;
 			var gameHandler = new POGameHandler(gameConfig, player1, player2, repeatDraws: false);
 
 			Console.WriteLine("Simulate Games");
@@ -546,10 +596,9 @@ namespace SabberStoneBasicAI
 
 			GameStats gameStats = gameHandler.getGameStats();
 
+			Console.WriteLine(player + " vs " + opponent);
 			gameStats.printResults();
-
 			Console.WriteLine("Test successful");
-			Console.ReadLine();
 		}
 
 		public static void TestPOGameTestAgent(int count)

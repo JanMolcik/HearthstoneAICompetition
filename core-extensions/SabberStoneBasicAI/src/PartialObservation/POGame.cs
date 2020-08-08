@@ -190,7 +190,7 @@ namespace SabberStoneBasicAI.PartialObservation
 						}
 						catch (Exception e)
 						{
-							Console.Write(e);
+							//Console.Write(e);
 							//Console.WriteLine("Failed to copy");
 						}
 					}

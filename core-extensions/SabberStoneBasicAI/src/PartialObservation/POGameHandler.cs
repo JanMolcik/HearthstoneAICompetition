@@ -130,7 +130,10 @@ namespace SabberStoneBasicAI.PartialObservation
 				return false;
 
 			if (addToGameStats)
+			{
 				gameStats.addGame(game, watches);
+				Console.WriteLine("Player 1 wins: " + gameStats.PlayerA_Wins + ", Player 2 wins: " + gameStats.PlayerB_Wins);
+			}
 
 			player1.FinalizeGame();
 			player2.FinalizeGame();
@@ -144,9 +147,14 @@ namespace SabberStoneBasicAI.PartialObservation
 			for (int i = 0; i < nr_of_games; i++)
 			{
 				if (!PlayGame(addResultToGameStats, debug))
+				{
 					i -= 1;     // invalid game
 								//pb.Update(i);
-				else Console.WriteLine("Played game " + (i + 1) + " out of " + nr_of_games);
+				}
+				else
+				{
+					Console.WriteLine("Played game " + (i + 1) + " out of " + nr_of_games);
+				}
 			}
 		}
 

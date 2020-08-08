@@ -15,12 +15,12 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 	class MCTS
 	{
 		private readonly double EXPLORATION_CONSTANT = 1 / Math.Sqrt(2); // magic constant for BestChild function
-		private readonly int COMPUTATIONAL_BUDGET = 8000; // in ms
+		private readonly int COMPUTATIONAL_BUDGET = 2000; // in ms
 		private readonly CustomStopwatch StopWatch = new CustomStopwatch();
 		private readonly Random Rand = new Random();
 		private readonly Controller player;
 		private readonly ChildSelector ChildSelection = new ChildSelector();
-		private readonly int TurnDepth = 1;
+		private readonly int TurnDepth = 0;
 		private readonly Dictionary<string, List<Card>> DecksDict = new Dictionary<string, List<Card>>();
 		private readonly Dictionary<string, double> ProbabilitiesDict = new Dictionary<string, double>();
 		private readonly string[] DeckNames = new string[] {"AggroPirateWarrior", "MidrangeBuffPaladin", "MidrangeJadeShaman", "MidrangeSecretHunter",
@@ -40,7 +40,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 			ProbabilitiesDict = probsDict;
 			ActionEstimator = new ActionEstimator(DecksDict, ProbabilitiesDict);
 			//poGame.CurrentPlayer.Options().ForEach(task => Console.Write(task + " "));
-			Console.WriteLine();
+			//Console.WriteLine();
 		}
 
 		public PlayerTask Search()
@@ -60,7 +60,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 			}
 			StopWatch.Stop();
 
-			return ChildSelection.SelectBestChild(InitialState, Root, EXPLORATION_CONSTANT, player, selectionStrategy, stateRateStrategy, true).Action;
+			return ChildSelection.SelectBestChild(InitialState, Root, EXPLORATION_CONSTANT, player, selectionStrategy, stateRateStrategy).Action;
 		}
 
 		private Node TreePolicy(Node node)

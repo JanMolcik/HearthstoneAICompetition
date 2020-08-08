@@ -36,7 +36,7 @@ namespace SabberStoneBasicAI.AIAgents
 				validOpts.OrderBy(x => Score(x.Value, player.PlayerId)).Last().Key :
 				player.Options().First(x => x.PlayerTaskType == PlayerTaskType.END_TURN);
 			// If all simulations failed, play end turn option (always exists), else best according to score function
-			Console.WriteLine("GreedyAgent Task: " + result);
+			//Console.WriteLine("GreedyAgent Task: " + result);
 			return result;
 		}
 

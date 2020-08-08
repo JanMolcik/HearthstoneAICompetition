@@ -80,7 +80,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 			PlayerTask result = mcts.Search();
 			//StopWatch.StopWithMessage(String.Format("Compute {0} options in {1} ms", optcount, StopWatch.ElapsedMilliseconds));
 
-			Console.WriteLine("Final task: " + result);
+			//Console.WriteLine("Final task: " + result);
 			return result;
 
 			void countProbabilities()
