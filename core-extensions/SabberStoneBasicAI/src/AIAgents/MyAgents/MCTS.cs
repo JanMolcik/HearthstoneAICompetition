@@ -29,9 +29,10 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 		private POGame InitialState;
 		private Node Root { get; set; }
 
-		public MCTS(POGame poGame, Dictionary<string, List<Card>> decksDict, Dictionary<string, double> probsDict, int turnDepth = 1)
+		public MCTS(POGame poGame, Dictionary<string, List<Card>> decksDict, Dictionary<string, double> probsDict, int turnDepth = 1, int timeBudget = 2000)
 		{
 			TurnDepth = turnDepth;
+			COMPUTATIONAL_BUDGET = timeBudget;
 			player = poGame.CurrentPlayer;
 			Root = new Node(poGame, player.PlayerId);
 			InitialState = poGame;
@@ -66,8 +67,9 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 		private Node TreePolicy(Node node)
 		{
 			var state = node.State;
-			while (state.State != State.COMPLETE && node.TurnDepth < TurnDepth)
+			while (state?.State != State.COMPLETE && node.TurnDepth < TurnDepth)
 			{
+				if (state == null) return node;
 				if (FullyExpanded(node))
 				{
 					var selectionStrategy = SelectionStrategies.GetSelectionStrategy(SelectionStrategy.UCT);
@@ -167,10 +169,12 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 			{
 				Controller currentPlayer = state.CurrentPlayer;
 				List<PlayerTask> actions = currentPlayer.Options();
-
 				List<PlayerTask> oldActions = new List<PlayerTask>(actions);
 				bool uncertainity = currentPlayer.Options()
 					.Any(option => option.PlayerTaskType == PlayerTaskType.PLAY_CARD && option.Source.Card.Name == "No Way!");
+
+				// end potential infinite loop of 0 cost spells (happend few times with a mage)
+				if (currentPlayer.CardsPlayedThisTurn.Count > 50) break;
 
 				if (uncertainity)
 				{

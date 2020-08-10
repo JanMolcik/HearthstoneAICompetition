@@ -21,6 +21,8 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 			"MiraclePirateRogue", "RenoKazakusDragonPriest", "RenoKazakusMage", "ZooDiscardWarlock" };
 		private Dictionary<string, List<Card>> DecksDict = new Dictionary<string, List<Card>>();
 		private Dictionary<string, double> ProbabilitiesDict = new Dictionary<string, double>();
+		public int TurnDepth { get; set; } = 1;
+		public int TimeBudget { get; set; } = 2000; // in msec
 
 		public override void InitializeAgent()
 		{
@@ -76,7 +78,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 
 			countProbabilities();
 			
-			MCTS mcts = new MCTS(game, DecksDict, ProbabilitiesDict);
+			MCTS mcts = new MCTS(game, DecksDict, ProbabilitiesDict, TurnDepth, TimeBudget);
 			PlayerTask result = mcts.Search();
 			//StopWatch.StopWithMessage(String.Format("Compute {0} options in {1} ms", optcount, StopWatch.ElapsedMilliseconds));
 

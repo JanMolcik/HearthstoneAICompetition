@@ -32,9 +32,12 @@ namespace SabberStoneBasicAI
 	internal class Program
 	{
 		private static readonly Random Rnd = new Random();
+		private static readonly string ReadPrompt = " > ";
 
 		private static void Main()
 		{
+			MainLoop();
+
 			Console.WriteLine("Starting test setup.");
 
 			//OneTurn();
@@ -43,63 +46,45 @@ namespace SabberStoneBasicAI
 			//TestPOGame();
 			//TestFullGames();
 			//TestTournament();
-
-			/* DONE
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new RandomAgent());
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new RandomAgent());
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new RandomAgent());
-			
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new RandomAgent());
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new RandomAgent());
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new RandomAgent());
-
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new RandomAgent());
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new RandomAgent());
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new RandomAgent());
-			*/
-			/* DONE
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new GreedyAgent());
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new GreedyAgent());
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new GreedyAgent());
-
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new GreedyAgent());
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new GreedyAgent());
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new GreedyAgent());
-
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new GreedyAgent());
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new GreedyAgent());
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new GreedyAgent());
-			*/
-			/*
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new BeamSearchAgent());
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new BeamSearchAgent());
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new BeamSearchAgent());
-
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new BeamSearchAgent());
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new BeamSearchAgent());
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new BeamSearchAgent());
-
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new BeamSearchAgent());
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new BeamSearchAgent());
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new BeamSearchAgent());
-			*/
-			/*
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new DynamicLookaheadAgent());
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new DynamicLookaheadAgent());
-			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new DynamicLookaheadAgent());
-			*/
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new DynamicLookaheadAgent());
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new DynamicLookaheadAgent());
-			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new DynamicLookaheadAgent());
-
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new DynamicLookaheadAgent());
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new DynamicLookaheadAgent());
-			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new DynamicLookaheadAgent());
-			
 			//TestPOGameTestAgent(1);
+
+			ExperimentSetup();
 
 			Console.WriteLine("Test ended!");
 			Console.ReadLine();
+		}
+
+		private static void MainLoop()
+		{
+			while (true)
+			{
+				string input = ReadFromConsole();
+				if (String.IsNullOrWhiteSpace(input)) continue;
+
+				try
+				{
+					string[] parsedInput = input.Split(' ');
+					
+					if (input == "exit") break;
+					string result = ExecuteCommand(input);
+					Console.WriteLine(result);
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e);
+				}
+			}
+		}
+
+		private static string ExecuteCommand(string command)
+		{
+			return "Executed " + command;
+		}
+
+		private static string ReadFromConsole(string promptMessage = "")
+		{
+			Console.Write(ReadPrompt + promptMessage);
+			return Console.ReadLine();
 		}
 
 		public static void TestTournament()
@@ -599,6 +584,78 @@ namespace SabberStoneBasicAI
 			Console.WriteLine(player + " vs " + opponent);
 			gameStats.printResults();
 			Console.WriteLine("Test successful");
+		}
+
+		public static void ExperimentSetup()
+		{
+			/* DONE 20
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new RandomAgent());
+			
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new RandomAgent());
+
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new RandomAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new RandomAgent());
+			*/
+
+			/* DONE 40
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new GreedyAgent());
+			
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new GreedyAgent());
+			
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new GreedyAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new GreedyAgent());
+			*/
+			/* DONE 40
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new BeamSearchAgent());
+			
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new BeamSearchAgent());
+			
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new BeamSearchAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new BeamSearchAgent());
+			*/
+			/* DONE 40
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new DynamicLookaheadAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new DynamicLookaheadAgent());
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new DynamicLookaheadAgent());
+			
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new DynamicLookaheadAgent());
+			
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new DynamicLookaheadAgent());
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new DynamicLookaheadAgent());
+
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new DynamicLookaheadAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new DynamicLookaheadAgent());
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new DynamicLookaheadAgent());
+			*/
+			/* DONE 20 
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.WARRIOR, Decks.AggroPirateWarrior, Decks.AggroPirateWarrior, new MyAgent() { TurnDepth = 2 });
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.PALADIN, Decks.AggroPirateWarrior, Decks.MidrangeBuffPaladin, new MyAgent() { TurnDepth = 2 });
+			TestPOGameMyAgent(20, CardClass.WARRIOR, CardClass.MAGE, Decks.AggroPirateWarrior, Decks.RenoKazakusMage, new MyAgent() { TurnDepth = 2 });
+			*/
+			/*
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.WARRIOR, Decks.MidrangeBuffPaladin, Decks.AggroPirateWarrior, new MyAgent() { TurnDepth = 2 });
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new MyAgent() { TurnDepth = 2 });
+			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new MyAgent() { TurnDepth = 2 });
+			*/
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new MyAgent() { TurnDepth = 2 });
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new MyAgent() { TurnDepth = 2 });
+			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new MyAgent() { TurnDepth = 2 });
+
 		}
 
 		public static void TestPOGameTestAgent(int count)
