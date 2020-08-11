@@ -26,19 +26,20 @@ using SabberStoneBasicAI.AIAgents;
 using SabberStoneBasicAI.PartialObservation;
 using SabberStoneBasicAI.CompetitionEvaluation;
 using SabberStoneBasicAI.AIAgents.MyAgents;
+using System.Text;
+using System.Reflection;
+using System.IO;
 
 namespace SabberStoneBasicAI
 {
 	internal class Program
 	{
 		private static readonly Random Rnd = new Random();
-		private static readonly string ReadPrompt = " > ";
+		private static readonly string ReadPrompt = "> ";
 
 		private static void Main()
 		{
 			MainLoop();
-
-			Console.WriteLine("Starting test setup.");
 
 			//OneTurn();
 			//FullGame();
@@ -48,32 +49,214 @@ namespace SabberStoneBasicAI
 			//TestTournament();
 			//TestPOGameTestAgent(1);
 
-			ExperimentSetup();
+			//ExperimentSetup();
 
 			Console.WriteLine("Test ended!");
-			Console.ReadLine();
+			//Console.ReadLine();
 		}
 
 		private static void MainLoop()
 		{
-			while (true)
+			PlayableAgent player1 = new PlayableAgent();
+			PlayableAgent player2 = new PlayableAgent();
+			StringBuilder help = new StringBuilder();
+			bool exit = false;
+
+			help.AppendLine();
+			help.Append("Use command 'player1' to setup first agent.");
+			help.AppendLine();
+			help.Append("Use command 'player2' to setup second agent.");
+			help.AppendLine();
+			help.Append("Use command 'start (count)' to start (count) number of simulations.");
+
+			Console.WriteLine("Duels of Agents");
+			while (!exit)
 			{
-				string input = ReadFromConsole();
+				string input = ReadFromConsole(help.ToString());
 				if (String.IsNullOrWhiteSpace(input)) continue;
 
 				try
 				{
-					string[] parsedInput = input.Split(' ');
+					List<string> parsedInput = input.Split(' ').ToList();
+
+					switch (parsedInput[0])
+					{
+						case "start":
+							int count;
+							if (parsedInput.Count < 2)
+							{
+								Console.WriteLine("Missing param");
+								continue;
+							}
+							if (Int32.TryParse(parsedInput[1], out count))
+							{
+								string inp = ReadFromConsole("Save game logs to file? (y/n)");
+								AgentDuel(count, player1, player2, inp.ToLower() == "y");
+							}
+							else
+							{
+								Console.WriteLine(parsedInput[1] + " not valid");
+							}
+							break;
+						case "player1":
+							player1 = SetupPlayer();
+							break;
+						case "player2":
+							player2 = SetupPlayer();
+							break;
+						case "exit":
+							exit = true;
+							break;
+						default:
+							break;
+					}
+
+					parsedInput.RemoveAt(0);
+
+					/*
+					while (parsedInput.Any())
+					{
+						
+					}
 					
-					if (input == "exit") break;
 					string result = ExecuteCommand(input);
 					Console.WriteLine(result);
+					*/
 				}
 				catch (Exception e)
 				{
 					Console.WriteLine(e);
 				}
 			}
+		}
+
+		private static PlayableAgent SetupPlayer()
+		{
+			StringBuilder help = new StringBuilder();
+			help.AppendLine("<---------- Player Setup ---------->");
+			help.AppendLine("Choose player deck and agent");
+			help.AppendLine("Available decks: AggroPirateWarrior, MidrangeBuffPaladin, MidrangeJadeShaman, MidrangeSecretHunter, " +
+				"MiraclePirateRogue, RenoKazakusDragonPries, RenoKazakusMage, ZooDiscardWarlock");
+			help.AppendLine("Available agents: RandomAgent, GreedyAgent, BeamSearchAgent, DynamicLookaheadAgent, MCTSAgent");
+			help.AppendLine("Example: AggroPirateWarrior BeamSearch");
+			string input = ReadFromConsole(help.ToString());
+
+			PlayableAgent agent = new PlayableAgent();
+
+			if (String.IsNullOrWhiteSpace(input)) return agent;
+
+			List<string> parsedInput = input.Split(' ').ToList();
+			if (parsedInput.Count >= 2)
+			{
+				agent.SetDeck(parsedInput[0]);
+
+				var assembly = Assembly.GetExecutingAssembly();
+
+				try
+				{
+					var type = assembly.GetTypes()
+						.First(t => t.Name == parsedInput[1]);
+
+					if (parsedInput[1] == "MCTSAgent")
+					{
+						agent.Agent = GetParamsForAgent();
+					}
+					else
+					{
+						AbstractAgent agentInstance = (AbstractAgent)Activator.CreateInstance(type);
+						agent.Agent = agentInstance;
+					}
+
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine("Invalid agent name. Using default agent");
+				}
+			}
+			else
+			{
+				Console.WriteLine("Not enough parameters. Using default deck and agent.");
+			}
+
+			return agent;
+		}
+
+		private static MCTSAgent GetParamsForAgent()
+		{
+			StringBuilder help = new StringBuilder();
+			MCTSAgent agent = new MCTSAgent();
+
+			help.AppendLine("<---------- MCTSAgent advanced parameters ---------->");
+			help.AppendLine("Turn depth (max depth of search): positive integer (default 1 -> flat MC)");
+			help.AppendLine("Time budget (max time per move): time in msec => 1000 (default 2000 -> 2 sec)");
+			help.AppendLine("Selection strategy: UCT, MaxChild, RobustChild, MaxRobustChild, MaxRatioChild, SecureChild");
+			help.AppendLine("State rate strategy: Aggro, Control, Ramp, Ejnar, Greedy, Fatigue");
+			help.AppendLine("Example: 1 2000 UCT Greedy");
+			string input = ReadFromConsole(help.ToString());
+
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				Console.WriteLine("Using deafult agent");
+				return agent;
+			}
+
+			string[] parsedInput = input.Split(' ');
+
+			if (parsedInput.Count() == 4)
+			{
+				try
+				{
+					int turnDepth;
+					int timeBudget;
+					SelectionStrategy selection;
+					StateRateStrategy stateRate;
+
+					if (!Int32.TryParse(parsedInput[0], out turnDepth) || turnDepth < 1)
+					{
+						Console.WriteLine("Not valid turn depth. Using default.");
+						turnDepth = 1;
+					}
+
+					if (!Int32.TryParse(parsedInput[1], out timeBudget) || timeBudget < 1000)
+					{
+						Console.WriteLine("Time budget less then 1000 msec. Using default.");
+						timeBudget = 2000;
+					}
+
+					if (Enum.GetNames(typeof(SelectionStrategy)).Contains(parsedInput[2]))
+					{
+						selection = (SelectionStrategy)Enum.Parse(typeof(SelectionStrategy), parsedInput[2]);
+					}
+					else
+					{
+						Console.WriteLine("Not valid Selection strategy. Using deafult.");
+						selection = SelectionStrategy.UCT;
+					}
+
+					if (Enum.GetNames(typeof(StateRateStrategy)).Contains(parsedInput[3]))
+					{
+						stateRate = (StateRateStrategy)Enum.Parse(typeof(StateRateStrategy), parsedInput[3]);
+					}
+					else
+					{
+						Console.WriteLine("Not valid State rate strategy. Using deafult.");
+						stateRate = StateRateStrategy.Greedy;
+					}
+
+					agent.TurnDepth = turnDepth;
+					agent.TimeBudget = timeBudget;
+					agent.Selection = selection;
+					agent.StateRate = stateRate;
+
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e);
+				}
+			}
+
+
+			return agent;
 		}
 
 		private static string ExecuteCommand(string command)
@@ -83,7 +266,8 @@ namespace SabberStoneBasicAI
 
 		private static string ReadFromConsole(string promptMessage = "")
 		{
-			Console.Write(ReadPrompt + promptMessage);
+			Console.WriteLine(promptMessage);
+			Console.Write(ReadPrompt);
 			return Console.ReadLine();
 		}
 
@@ -572,7 +756,7 @@ namespace SabberStoneBasicAI
 			};
 
 			Console.WriteLine("Setup POGameHandler");
-			AbstractAgent player1 = new MyAgent();
+			AbstractAgent player1 = new MCTSAgent();
 			AbstractAgent player2 = opponentAgent;
 			var gameHandler = new POGameHandler(gameConfig, player1, player2, repeatDraws: false);
 
@@ -584,6 +768,55 @@ namespace SabberStoneBasicAI
 			Console.WriteLine(player + " vs " + opponent);
 			gameStats.printResults();
 			Console.WriteLine("Test successful");
+		}
+
+		public static void AgentDuel(int count, PlayableAgent player, PlayableAgent opponent, bool saveLogs = false)
+		{
+			Console.WriteLine("Setup gameConfig");
+
+			var gameConfig = new GameConfig()
+			{
+				StartPlayer = -1,
+				Player1HeroClass = player.AgentClass,
+				Player2HeroClass = opponent.AgentClass,
+				Player1Deck = player.Deck,
+				Player2Deck = opponent.Deck,
+				FillDecks = false,
+				Shuffle = true,
+				Logging = true
+			};
+
+			//Console.WriteLine("Setup POGameHandler");
+			AbstractAgent player1 = player.Agent;
+			AbstractAgent player2 = opponent.Agent;
+			var gameHandler = new POGameHandler(gameConfig, player1, player2, repeatDraws: false);
+			Console.WriteLine("Simulate Games");
+			gameHandler.PlayGames(nr_of_games: count, addResultToGameStats: true, debug: false);
+
+			GameStats gameStats = gameHandler.getGameStats();
+
+			if (saveLogs)
+			{
+				try
+				{
+					string path = "logs.txt";
+					//if (!File.Exists(path))
+					//{
+						using (StreamWriter sw = File.CreateText(path))
+						{
+							gameStats.GameInfoLogs.ForEach(log => log.ForEach(logEntry => sw.WriteLine(logEntry)));
+						}
+					//}
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine(e);
+				}
+			}
+
+			Console.WriteLine(player.AgentClass + " vs " + opponent.AgentClass);
+			gameStats.printResults();
+			Console.WriteLine("Duel successful");
 		}
 
 		public static void ExperimentSetup()
@@ -652,10 +885,11 @@ namespace SabberStoneBasicAI
 			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.PALADIN, Decks.MidrangeBuffPaladin, Decks.MidrangeBuffPaladin, new MyAgent() { TurnDepth = 2 });
 			TestPOGameMyAgent(20, CardClass.PALADIN, CardClass.MAGE, Decks.MidrangeBuffPaladin, Decks.RenoKazakusMage, new MyAgent() { TurnDepth = 2 });
 			*/
+			/*
 			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.WARRIOR, Decks.RenoKazakusMage, Decks.AggroPirateWarrior, new MyAgent() { TurnDepth = 2 });
 			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.PALADIN, Decks.RenoKazakusMage, Decks.MidrangeBuffPaladin, new MyAgent() { TurnDepth = 2 });
 			TestPOGameMyAgent(20, CardClass.MAGE, CardClass.MAGE, Decks.RenoKazakusMage, Decks.RenoKazakusMage, new MyAgent() { TurnDepth = 2 });
-
+			*/
 		}
 
 		public static void TestPOGameTestAgent(int count)
@@ -709,7 +943,7 @@ namespace SabberStoneBasicAI
 			};
 
 			Console.WriteLine("Setup POGameHandler");
-			AbstractAgent player1 = new MyAgent();
+			AbstractAgent player1 = new MCTSAgent();
 			AbstractAgent player2 = new RandomAgent();
 			var gameHandler = new POGameHandler(gameConfig, player1, player2, repeatDraws: false);
 
@@ -742,7 +976,7 @@ namespace SabberStoneBasicAI
 			};
 
 			Console.WriteLine("Setup POGameHandler");
-			AbstractAgent player1 = new MyAgent();
+			AbstractAgent player1 = new MCTSAgent();
 			AbstractAgent player2 = new RandomAgent();
 			var gameHandler = new POGameHandler(gameConfig, player1, player2, repeatDraws: false);
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using SabberStoneCore.Enums;
 using SabberStoneCore.Model;
 
@@ -15,6 +16,7 @@ namespace SabberStoneBasicAI.PartialObservation
 		private double[] time_per_player = new[] { 0D, 0D };
 		private int[] exception_count = new[] { 0, 0 };
 		private Dictionary<int, string> exceptions = new Dictionary<int, string>();
+		public List<List<LogEntry>> GameInfoLogs { get; set; } = new List<List<LogEntry>>();
 
 		//Todo add getter for each private variable
 
@@ -27,6 +29,10 @@ namespace SabberStoneBasicAI.PartialObservation
 		{
 			nr_games++;
 			turns += game.Turn;
+
+			GameInfoLogs.Add(game.Logs.Where(log => log.Level == LogLevel.INFO).ToList());
+
+			//Console.WriteLine(game.Logs.First().ToString());
 
 			if (game.Player1.PlayState == PlayState.WON)
 				wins[0]++;

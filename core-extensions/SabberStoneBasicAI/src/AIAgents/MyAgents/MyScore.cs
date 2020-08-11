@@ -11,12 +11,12 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 	{
 		public override int Rate()
 		{
-			// lose
+
 			if (HeroHp < 1)
 			{
 				return Int32.MinValue;
 			}
-			// win
+
 			if (OpHeroHp < 1)
 			{
 				return Int32.MaxValue;
@@ -25,21 +25,11 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 			int result = 0;
 			int scale = 1000;
 
-			//if (OpBoardZone.Count == 0 && BoardZone.Count > 0)
-			//	result += 1000;
-
-			//if (OpMinionTotHealthTaunt > 0)
-			//	result += OpMinionTotHealthTaunt * -1000;
-
-			//result += MinionTotAtk;
-
 			Controller player = Controller;
 			Controller opp = player.Opponent;
 
 			int heroHp = HeroHp + player.Hero.Armor;
 			int oppHeroHp = OpHeroHp + opp.Hero.Armor;
-			//result += (HeroHp - OpHeroHp) * 1000;
-			//result += (heroHp - oppHeroHp);
 			result += (heroHp - oppHeroHp) * scale;
 
 			result += HandCnt * 3 * scale;
@@ -49,14 +39,14 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 			result += minions.Count() * 2 * scale;
 			foreach (Minion minion in minions)
 			{
-				result += getMinionScore(minion) * scale;
+				result += MinionScore(minion) * scale;
 			}
 
 			Minion[] oppMinions = OpBoardZone.GetAll();
 			result -= oppMinions.Count() * 2 * scale;
 			foreach (Minion oppMinion in oppMinions)
 			{
-				result -= getMinionScore(oppMinion) * scale;
+				result -= MinionScore(oppMinion) * scale;
 			}
 
 			return result;
@@ -67,7 +57,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 			return p => p.Where(t => t.Cost > 3).Select(t => t.Id).ToList();
 		}
 
-		private int getMinionScore(Minion minion)
+		private int MinionScore(Minion minion)
 		{
 			int result = 0;
 
@@ -96,9 +86,6 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 			{
 				result += (int)(baseValue * 1.5f);
 			}
-
-			//int spellDamageBonus = minion[GameTag.SPELLPOWER];
-			//result += spellDamageBonus;
 
 			if (minion.IsEnraged)
 			{

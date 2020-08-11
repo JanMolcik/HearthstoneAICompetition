@@ -9,13 +9,14 @@ using SabberStoneBasicAI.Meta;
 using SabberStoneCore.Model;
 using SabberStoneCore.Enums;
 using SabberStoneBasicAI.Score;
+using System.Text;
 
 
 // TODO choose your own namespace by setting up <submission_tag>
 // each added file needs to use this namespace or a subnamespace of it
 namespace SabberStoneBasicAI.AIAgents.MyAgents
 {
-	class MyAgent : AbstractAgent
+	class MCTSAgent : AbstractAgent
 	{
 		private readonly string[] DeckNames = new string[] {"AggroPirateWarrior", "MidrangeBuffPaladin", "MidrangeJadeShaman", "MidrangeSecretHunter",
 			"MiraclePirateRogue", "RenoKazakusDragonPriest", "RenoKazakusMage", "ZooDiscardWarlock" };
@@ -23,6 +24,8 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 		private Dictionary<string, double> ProbabilitiesDict = new Dictionary<string, double>();
 		public int TurnDepth { get; set; } = 1;
 		public int TimeBudget { get; set; } = 2000; // in msec
+		public SelectionStrategy Selection { get; set; } = SelectionStrategy.UCT;
+		public StateRateStrategy StateRate { get; set; } = StateRateStrategy.Greedy;
 
 		public override void InitializeAgent()
 		{
@@ -78,7 +81,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 
 			countProbabilities();
 			
-			MCTS mcts = new MCTS(game, DecksDict, ProbabilitiesDict, TurnDepth, TimeBudget);
+			MCTS mcts = new MCTS(game, DecksDict, ProbabilitiesDict, TurnDepth, TimeBudget, Selection, StateRate);
 			PlayerTask result = mcts.Search();
 			//StopWatch.StopWithMessage(String.Format("Compute {0} options in {1} ms", optcount, StopWatch.ElapsedMilliseconds));
 

@@ -20,7 +20,9 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 
 				{ StateRateStrategy.Ramp, (POGame state, Controller player) => new RampScore { Controller = player }.Rate() },
 
-				{ StateRateStrategy.Control, (POGame state, Controller player) => new ControlScore { Controller = player }.Rate() }
+				{ StateRateStrategy.Control, (POGame state, Controller player) => new ControlScore { Controller = player }.Rate() },
+
+				{ StateRateStrategy.Fatigue, (POGame state, Controller player) => new FatigueScore { Controller = player }.Rate() }
 			};
 
 		public static Func<POGame, Controller, int> GetStateRateStrategy(StateRateStrategy strategy)

@@ -25,14 +25,20 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 		private readonly Dictionary<string, double> ProbabilitiesDict = new Dictionary<string, double>();
 		private readonly string[] DeckNames = new string[] {"AggroPirateWarrior", "MidrangeBuffPaladin", "MidrangeJadeShaman", "MidrangeSecretHunter",
 			"MiraclePirateRogue", "RenoKazakusDragonPriest", "RenoKazakusMage", "ZooDiscardWarlock" };
+		private readonly SelectionStrategy Selection;
+		private readonly StateRateStrategy StateRate;
 		private ActionEstimator ActionEstimator;
 		private POGame InitialState;
 		private Node Root { get; set; }
 
-		public MCTS(POGame poGame, Dictionary<string, List<Card>> decksDict, Dictionary<string, double> probsDict, int turnDepth = 1, int timeBudget = 2000)
+		public MCTS(POGame poGame, Dictionary<string, List<Card>> decksDict, Dictionary<string, double> probsDict,
+			int turnDepth = 1, int timeBudget = 2000, SelectionStrategy selectionStrategy = SelectionStrategy.UCT,
+			StateRateStrategy stateRateStrategy = StateRateStrategy.Greedy)
 		{
 			TurnDepth = turnDepth;
 			COMPUTATIONAL_BUDGET = timeBudget;
+			Selection = selectionStrategy;
+			StateRate = stateRateStrategy;
 			player = poGame.CurrentPlayer;
 			Root = new Node(poGame, player.PlayerId);
 			InitialState = poGame;
@@ -50,8 +56,8 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 			if (options.Count == 1 && options[0].PlayerTaskType == PlayerTaskType.END_TURN) return options.First();
 
 			StopWatch.Start();
-			var selectionStrategy = SelectionStrategies.GetSelectionStrategy(SelectionStrategy.UCT);
-			var stateRateStrategy = StateRateStrategies.GetStateRateStrategy(StateRateStrategy.Greedy);
+			var selectionStrategy = SelectionStrategies.GetSelectionStrategy(Selection);
+			var stateRateStrategy = StateRateStrategies.GetStateRateStrategy(StateRate);
 			while (StopWatch.ElapsedMilliseconds < COMPUTATIONAL_BUDGET)
 			{
 				POGame state = InitialState.getCopy();
@@ -72,8 +78,8 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 				if (state == null) return node;
 				if (FullyExpanded(node))
 				{
-					var selectionStrategy = SelectionStrategies.GetSelectionStrategy(SelectionStrategy.UCT);
-					var stateRateStrategy = StateRateStrategies.GetStateRateStrategy(StateRateStrategy.Greedy);
+					var selectionStrategy = SelectionStrategies.GetSelectionStrategy(Selection);
+					var stateRateStrategy = StateRateStrategies.GetStateRateStrategy(StateRate);
 					node = ChildSelection.SelectBestChild(state, node, EXPLORATION_CONSTANT, player, selectionStrategy, stateRateStrategy);
 					state = state.Simulate(new List<PlayerTask> { node.Action })[node.Action];
 				}
@@ -94,7 +100,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 			{
 				child = node.Children[Rand.Next(node.Children.Count)];
 			}
-			while (child.Children.Count > 0);// || child.Action.PlayerTaskType == PlayerTaskType.END_TURN); // unvisited child
+			while (child.Children.Count > 0);
 
 			POGame childState = state.getCopy();
 			childState = childState.Simulate(new List<PlayerTask> { child.Action })[child.Action];
@@ -122,12 +128,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 					actions = state.CurrentPlayer.PlayerId == player.PlayerId ?
 						ActionEstimator.DrawSimulation(currentPlayer) :
 						ActionEstimator.ActionEstimaton(state, currentPlayer);
-					/*actions
-						.ForEach(action => Console.WriteLine(action + ", player: " + state.CurrentPlayer.PlayerId));*/
 				}
-
-				//PlayerTask randomAction = actions[Rand.Next(actions.Count())];
-				//Console.WriteLine("Choosing: " + randomAction);
 
 				var bestPair = state.Simulate(actions.Any() ? actions : oldActions)
 					.Where(pair => pair.Value != null)
@@ -235,16 +236,6 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 					.ForEach(option =>
 						node.Children.Add(new Node(simulations[option], option, node, state.CurrentPlayer.PlayerId,
 							node.Action?.PlayerTaskType == PlayerTaskType.END_TURN ? node.TurnDepth + 1 : node.TurnDepth)));
-				/*
-				.ForEach(option =>
-				{
-					if (!(option.HasSource && option.Source.Card.Name == "No Way!"))
-					{
-						node.Children.Add(new Node(state, option, node, state.CurrentPlayer.PlayerId,
-							node.Action?.PlayerTaskType == PlayerTaskType.END_TURN ? node.TurnDepth + 1 : node.TurnDepth));
-					}
-				});
-				*/
 			}
 		}
 
