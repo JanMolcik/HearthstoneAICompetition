@@ -39,7 +39,7 @@ namespace SabberStoneBasicAI.AIAgents
 			{ // Time is running out, just simulate one timestep now
 				depth = 1;
 				beamWidth = 1;
-				Console.WriteLine("Over 30s in turn already. Pausing beam search for this turn!");
+				//Console.WriteLine("Over 30s in turn already. Pausing beam search for this turn!");
 			}
 
 			_watch.Start();

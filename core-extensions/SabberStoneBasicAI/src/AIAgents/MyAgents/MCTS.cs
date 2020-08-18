@@ -14,7 +14,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 {
 	class MCTS
 	{
-		private readonly double EXPLORATION_CONSTANT = 1 / Math.Sqrt(2); // magic constant for BestChild function
+		private readonly double EXPLORATION_CONSTANT = 1 / Math.Sqrt(2); // exploration constant for BestChild function
 		private readonly int COMPUTATIONAL_BUDGET = 2000; // in ms
 		private readonly CustomStopwatch StopWatch = new CustomStopwatch();
 		private readonly Random Rand = new Random();
@@ -33,10 +33,11 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 
 		public MCTS(POGame poGame, Dictionary<string, List<Card>> decksDict, Dictionary<string, double> probsDict,
 			int turnDepth = 1, int timeBudget = 2000, SelectionStrategy selectionStrategy = SelectionStrategy.UCT,
-			StateRateStrategy stateRateStrategy = StateRateStrategy.Greedy)
+			StateRateStrategy stateRateStrategy = StateRateStrategy.Greedy, double explorationConstant = 0.5)
 		{
 			TurnDepth = turnDepth;
 			COMPUTATIONAL_BUDGET = timeBudget;
+			EXPLORATION_CONSTANT = explorationConstant;
 			Selection = selectionStrategy;
 			StateRate = stateRateStrategy;
 			player = poGame.CurrentPlayer;

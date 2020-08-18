@@ -24,6 +24,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 		private Dictionary<string, double> ProbabilitiesDict = new Dictionary<string, double>();
 		public int TurnDepth { get; set; } = 1;
 		public int TimeBudget { get; set; } = 2000; // in msec
+		public double ExplorationConstant { get; set; } = 1 / Math.Sqrt(2);
 		public SelectionStrategy Selection { get; set; } = SelectionStrategy.UCT;
 		public StateRateStrategy StateRate { get; set; } = StateRateStrategy.Greedy;
 
@@ -81,7 +82,7 @@ namespace SabberStoneBasicAI.AIAgents.MyAgents
 
 			countProbabilities();
 			
-			MCTS mcts = new MCTS(game, DecksDict, ProbabilitiesDict, TurnDepth, TimeBudget, Selection, StateRate);
+			MCTS mcts = new MCTS(game, DecksDict, ProbabilitiesDict, TurnDepth, TimeBudget, Selection, StateRate, ExplorationConstant);
 			PlayerTask result = mcts.Search();
 			//StopWatch.StopWithMessage(String.Format("Compute {0} options in {1} ms", optcount, StopWatch.ElapsedMilliseconds));
 
